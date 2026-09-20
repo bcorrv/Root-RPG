@@ -7,9 +7,9 @@ Companion web/PWA para una campaña sandbox física de **Root**.
 - **App = memoria y sistema**
 - **GPT / GM = interpretación, NPC, consecuencias y lectura del mundo**
 
-## v0.4 — Woodland Companion
+## v0.5 — Woodland Companion
 
-La interfaz dejó de depender de emojis y formularios. La app usa un sistema visual propio, inspirado en bosque, cartón, tinta y fichas de juego, sin copiar arte oficial.
+La interfaz dejó de depender de emojis y formularios. En v0.5, las Órdenes, Rumores y Misiones se representan como cartas físicas digitales con ilustraciones originales del bosque. La app usa un sistema visual propio, inspirado en bosque, cartón, tinta y fichas de juego, sin copiar arte oficial.
 
 ### Loop central
 **Carta de Orden → cambio real en mesa → consecuencia → rumor / misión / fondo → recompensa**
