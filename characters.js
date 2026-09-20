@@ -11,8 +11,8 @@ window.ROOT_RPG_CHARACTER_DATA = {
       specialAbility: {
         id: "steal",
         name: "STEAL",
-        itemCost: "torch",
-        description: "Agota una Antorcha para sustraer una carta al actor presente en tu claro. En misiones puede abrir opciones de robo, infiltración, información u objetos.",
+        frequency: "once_per_day",
+        description: "Una vez por día, interactúa con otro actor presente en tu claro para sustraer recursos, cartas, objetos o información cuando la situación lo permita.",
         physicalReminder: "La carta u objeto físico se resuelve en mesa; la app solo registra la consecuencia."
       },
       startingItems: ["torch","tea","boot","sword"],
@@ -41,15 +41,15 @@ window.ROOT_RPG_CHARACTER_DATA = {
     ranger: {
       id: "ranger",
       name: "RANGER",
-      species: "Wolf",
+      species: "Fox",
       portrait: "./portrait-ranger.svg",
       tagline: "Supervivencia, combate y exploración",
       playstyle: "Rastreo · zonas peligrosas · autosuficiencia",
       specialAbility: {
         id: "hideout",
         name: "HIDEOUT",
-        itemCost: "torch",
-        description: "Agota una Antorcha para reparar hasta tres objetos dañados y termina inmediatamente tu jornada.",
+        frequency: "once_per_day",
+        description: "Una vez por día, retírate a un refugio: repara hasta tres objetos dañados y termina inmediatamente tu jornada.",
         physicalReminder: "Conserva la identidad original de recuperación del Ranger."
       },
       startingItems: ["torch","boot","sword","crossbow"],
@@ -85,8 +85,8 @@ window.ROOT_RPG_CHARACTER_DATA = {
       specialAbility: {
         id: "day_labor",
         name: "DAY LABOR",
-        itemCost: "torch",
-        description: "Agota una Antorcha para recuperar una carta apropiada del descarte físico. En el RPG abre soluciones de recuperación y reutilización.",
+        frequency: "once_per_day",
+        description: "Una vez por día, recupera una carta o recurso apropiado del descarte físico. En el RPG abre soluciones de recuperación y reutilización.",
         physicalReminder: "La carta se toma del descarte físico; la app no elige por ti."
       },
       startingItems: ["torch","bag","boot","hammer"],
