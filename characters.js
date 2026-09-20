@@ -34,7 +34,7 @@ window.ROOT_RPG_CHARACTER_DATA = {
         {id:"thief_informant_2",name:"NETWORK",characterType:"thief",branch:"informant",tier:2,description:"Amplía el acceso a rumores de facciones conocidas.",effect:"rumor_access",opensOptions:[{tag:"faction_rumor",label:"CONSULTAR LA RED",resolution:"special"}],unlockRequirements:["thief_informant_1"],unlocked:false,dateUnlocked:null},
         {id:"thief_informant_3",name:"SPYMASTER",characterType:"thief",branch:"informant",tier:3,description:"Permite acceder ocasionalmente a información oculta del mundo.",effect:"world_intel",opensOptions:[{tag:"hidden_intel",label:"ACTIVAR INFORMANTE",resolution:"special"}],unlockRequirements:["thief_informant_2"],unlocked:false,dateUnlocked:null}
       ],
-      signatureTags:["infiltration","theft","information","contraband"]
+      signatureTags:["infiltration","theft","information","contraband"],\n      signatureActionIds:["infiltrate","investigate","trade"]
     },
 
     ranger: {
@@ -70,7 +70,7 @@ window.ROOT_RPG_CHARACTER_DATA = {
         {id:"ranger_survivor_2",name:"ENDURANCE",characterType:"ranger",branch:"survivor",tier:2,description:"Reduce determinadas penalizaciones de expediciones.",effect:"consequence_softener",opensOptions:[{tag:"expedition",label:"SEGUIR ADELANTE",resolution:"skill"}],unlockRequirements:["ranger_survivor_1"],unlocked:false,dateUnlocked:null},
         {id:"ranger_survivor_3",name:"UNBREAKABLE",characterType:"ranger",branch:"survivor",tier:3,description:"Abre opciones exclusivas en supervivencia extrema.",effect:"mission_option",opensOptions:[{tag:"survival_extreme",label:"RESISTIR LO IMPOSIBLE",resolution:"special"}],unlockRequirements:["ranger_survivor_2"],unlocked:false,dateUnlocked:null}
       ],
-      signatureTags:["tracking","exploration","pursuit","survival"]
+      signatureTags:["tracking","exploration","pursuit","survival"],\n      signatureActionIds:["explore","combat","move"]
     },
 
     tinker: {
@@ -106,7 +106,7 @@ window.ROOT_RPG_CHARACTER_DATA = {
         {id:"tinker_inventor_2",name:"CONTRAPTION",characterType:"tinker",branch:"inventor",tier:2,description:"Permite emplear dispositivos y mecanismos especiales.",effect:"mission_option",opensOptions:[{tag:"mechanism",label:"MONTAR MECANISMO",resolution:"skill"}],unlockRequirements:["tinker_inventor_1"],unlocked:false,dateUnlocked:null},
         {id:"tinker_inventor_3",name:"INVENTOR",characterType:"tinker",branch:"inventor",tier:3,description:"Abre soluciones únicas de ingeniería y artefactos.",effect:"mission_option",opensOptions:[{tag:"engineering",label:"DISEÑAR SOLUCIÓN ÚNICA",resolution:"special"}],unlockRequirements:["tinker_inventor_2"],unlocked:false,dateUnlocked:null}
       ],
-      signatureTags:["craft","repair","salvage","alternative_entry"]
+      signatureTags:["craft","repair","salvage","alternative_entry"],\n      signatureActionIds:["craft","explore","trade"]
     }
   },
 
