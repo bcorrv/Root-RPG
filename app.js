@@ -1226,29 +1226,6 @@
     }
   };
 
-  // Initial action buttons
-  renderActions();
-  $('#actionGrid').addEventListener('click',e=>{
-    const btn=e.target.closest('[data-action]');
-    if(btn) openAction(btn.dataset.action);
-  });
-
-  // Render action buttons with ids for delegated interaction.
-  function hydrateActionIds(){
-    Array.from($('#actionGrid').children).forEach((btn,i)=>{
-      btn.dataset.action=ACTIONS[i].id;
-    });
-  }
-
-  const originalRenderActions=renderActions;
-  renderActions=function(){
-    originalRenderActions();
-    hydrateActionIds();
-  };
-
-  // Since renderActions was called once before wrapping, hydrate once now.
-  hydrateActionIds();
-
   if(!S.onboarded) showOnboarding();
   ensureWorldProgress();
   renderAll();
