@@ -3,54 +3,88 @@
 Companion web/PWA para una campaña sandbox física de **Root**.
 
 ## Principio
+
 - **Mesa física = mundo**
 - **App = memoria y sistema**
 - **GPT / GM = interpretación, NPC, consecuencias y lectura del mundo**
 
-## v0.6 — Character System V1
+## v0.7 — Character System V1
 
-La progresión del Vagabundo ya no usa HP, XP ni niveles genéricos. El personaje crece mediante:
-
-**habilidades → objetos → relaciones → reputación → hitos → historia**
+La campaña ya tiene un sistema de personaje propio manteniendo la identidad mecánica de Root.
 
 ### Vagabundos disponibles
-Por ahora solo los tres del juego base:
-- **Thief**
-- **Ranger**
-- **Tinker**
+Solo los tres del juego base:
+- **Thief** — oportunismo, sigilo e información.
+- **Ranger** — supervivencia, combate y exploración.
+- **Tinker** — creación, recuperación y recursos.
 
-La arquitectura está separada en `characters.js` para añadir posteriormente Vagabond Pack u otros personajes sin reescribir la interfaz.
+El Vagabond Pack queda preparado en la arquitectura, pero no aparece todavía como opción seleccionable.
 
-### Crear Vagabundo
-Flujo de tres pasos:
-1. nombre del personaje — único campo de texto obligatorio;
-2. elegir una carta visual grande: Thief, Ranger o Tinker;
-3. confirmar y comenzar.
+### Creación de personaje
+El único texto obligatorio es el **nombre**. Después se elige el Vagabundo mediante cartas visuales con:
+- retrato original;
+- identidad;
+- habilidad única;
+- estilo de juego;
+- objetos iniciales.
 
-Cada carta usa un retrato personalizado creado para el proyecto y muestra identidad, habilidad única y objetos iniciales.
+Los retratos de Thief, Ranger y Tinker son diseños originales creados específicamente para este companion y se muestran tanto en la selección como en **Mi Vagabundo**.
 
-### Objetos Root
-El inventario usa exclusivamente los objetos de Root: Boot, Sword, Crossbow, Torch, Hammer, Tea, Coin y Bag.
+### Progresión
+No hay XP, niveles de personaje, HP ni atributos tradicionales.
 
-Cada objeto puede reflejar su estado físico: **listo / agotado / dañado**.
+La progresión ocurre mediante **hitos**:
+- completar misiones;
+- descubrir y vincular Lugares Míticos;
+- conseguir variedad de objetos;
+- alcanzar relaciones importantes;
+- intervenir en eventos relevantes;
+- actuar de acuerdo con el arquetipo.
 
-### Habilidades
-Cada personaje tiene tres ramas con tres tiers. Se desbloquean mediante **hitos**, no XP.
+Los hitos generan elecciones de habilidad. Cada Vagabundo tiene tres ramas de tres habilidades y puede mezclar ramas libremente.
 
-Los hitos pueden surgir de completar misiones, descubrir o vincular Lugares Míticos, reputación alta, variedad de objetos, acciones propias del arquetipo o eventos importantes.
+### Misiones por etapas
+Las misiones ya no se completan con un solo botón:
 
-Las habilidades abren nuevas opciones dentro de misiones y eventos.
+**Pista → Objetivo → Resolución → Recompensa**
 
-### Misiones multietapa
-El loop central ahora es:
+- La pista consume tiempo y localiza un claro físico.
+- Debes viajar realmente a ese claro.
+- La escena ofrece opciones generales y opciones exclusivas de habilidades desbloqueadas.
+- Las habilidades abren formas distintas de resolver el mismo problema.
+- La recompensa vuelve al inventario como un objeto físico de Root.
 
-**Carta de Orden → Rumor/Misión → Investigar pista → localizar claro → llegar físicamente → resolver escena → obtener objeto**
+### Objetos
+Los objetos siguen siendo los componentes de Root:
+Boot, Sword, Crossbow, Torch, Hammer, Tea, Coin y Bag.
 
-Las habilidades desbloqueadas pueden abrir rutas exclusivas para resolver una misma escena.
+La app registra si un objeto está:
+- listo;
+- agotado;
+- dañado.
+
+En Birdsong, el refresh sigue la lógica del Vagabundo de Root: tres objetos base más dos por cada Tea listo.
 
 ### Cartas de Orden
-Las Cartas de Orden siguen siendo el motor causal del sandbox:
+El loop del mundo continúa siendo:
 
 **Carta de Orden → cambio real en mesa → consecuencia → rumor / misión / fondo**
 
-La app nunca sustituye la resolución oficial de los bots ni el estado físico del tablero.
+Las órdenes quedan archivadas por día y alimentan la historia emergente.
+
+### Persistencia
+La campaña guarda:
+- personaje;
+- Vagabundo;
+- objetos;
+- habilidad única;
+- habilidades adquiridas;
+- hitos;
+- reputación;
+- descubrimientos;
+- eventos importantes;
+- misiones;
+- rumores;
+- mundo y Órdenes.
+
+Todo persiste localmente y puede exportarse/importarse en JSON.
