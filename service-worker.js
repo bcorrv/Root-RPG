@@ -1,10 +1,10 @@
-const CACHE='root-rpg-v06';
+const CACHE='root-rpg-v07';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=6',
-  './characters.js?v=1',
-  './app.js?v=6',
+  './styles.css?v=7',
+  './characters.js?v=2',
+  './app.js?v=7',
   './manifest.webmanifest',
   './icon.svg',
   './icons.svg',
