@@ -1,6 +1,6 @@
 (() => {
-  const KEY='rootRpg_v07';
-  const LEGACY=['rootRpg_v06','rootRpg_v04','rootRpg_v03','rootRpg_v02','rootSandboxCompanion_v02','rootSandbox_v01'];
+  const KEY='rootRpg_v08';
+  const LEGACY=['rootRpg_v07','rootRpg_v06','rootRpg_v04','rootRpg_v03','rootRpg_v02','rootSandboxCompanion_v02','rootSandbox_v01'];
   const DATA=window.ROOT_RPG_CHARACTER_DATA;
   const VAGS=DATA.vagabonds;
   const MILESTONES=DATA.milestoneRules;
@@ -46,10 +46,10 @@
 
   function item(type,status='ready',source='starting'){return{id:uid(),type,status,source,obtainedDay:1}}
   function characterShell(){
-    return{id:uid(),name:'',vagabondType:null,startingItems:[],currentItems:[],specialAbility:null,skills:[],milestones:[],pendingSkillChoices:0,reputation:{Marquesado:0,Eyrie:0,Alianza:0},discoveries:[],importantEvents:[],clear:'',signatureActionCount:0};
+    return{id:uid(),name:'',vagabondType:null,startingItems:[],currentItems:[],specialAbility:null,specialAbilityUsedDay:null,skills:[],milestones:[],pendingSkillChoices:0,reputation:{Marquesado:0,Eyrie:0,Alianza:0},discoveries:[],importantEvents:[],clear:'',signatureActionCount:0};
   }
   function fresh(){
-    return{version:'0.6',onboarded:false,campaign:'Crónicas del Bosque',day:1,time:0,phase:'player',actions:[],character:characterShell(),bots:{Marquesado:true,Eyrie:true,Alianza:false},world:{day:1,resolved:{Marquesado:false,Eyrie:false,Alianza:false},records:{}},orderHistory:[],states:[],rumors:[],missions:[],landmarks:LANDMARKS.map(x=>({...x,level:0,clear:''})),log:[]};
+    return{version:'0.8',onboarded:false,campaign:'Crónicas del Bosque',day:1,time:0,phase:'player',actions:[],character:characterShell(),bots:{Marquesado:true,Eyrie:true,Alianza:false},world:{day:1,resolved:{Marquesado:false,Eyrie:false,Alianza:false},records:{}},orderHistory:[],states:[],rumors:[],missions:[],vagabondQuests:{slots:[null,null,null],completed:[],counts:{mouse:0,rabbit:0,fox:0,bird:0}},landmarks:LANDMARKS.map(x=>({...x,level:0,clear:'',revealed:false})),log:[]};
   }
   function legacyItemType(k){
     const map={'⚔️ Espada':'sword','👢 Bota':'boot','🔥 Antorcha':'torch','🔨 Martillo':'hammer','🏹 Ballesta':'crossbow','🍵 Té':'tea','🪙 Moneda':'coin','🎒 Bolsa':'bag'};
@@ -61,12 +61,13 @@
     n.bots=old.bots||n.bots;n.world=old.world||n.world;n.orderHistory=old.orderHistory||[];
     n.states=Array.isArray(old.states)?old.states:[];
     n.rumors=Array.isArray(old.rumors)?old.rumors:[];
+    n.vagabondQuests=old.vagabondQuests||n.vagabondQuests;
     n.missions=Array.isArray(old.missions)?old.missions.map(m=>({
       ...m,id:m.id||uid(),status:m.status||'active',stage:m.stage||'lead',targetClear:m.targetClear||null,tags:Array.isArray(m.tags)?m.tags:missionTags(m?.source?.outcome)
     })):[];
     n.landmarks=Array.isArray(old.landmarks)?LANDMARKS.map(base=>{
       const hit=old.landmarks.find(x=>x.id===base.id||String(x.name||'').includes(base.name.split(' ')[0]));
-      return hit?{...base,level:hit.level||0,clear:hit.clear||''}:{...base,level:0,clear:''}
+      return hit?{...base,level:hit.level||0,clear:hit.clear||'',revealed:!!(hit.revealed||hit.clear)}:{...base,level:0,clear:'',revealed:false}
     }):n.landmarks;
     n.log=Array.isArray(old.log)?old.log:[];
     n.actions=Array.isArray(old.actions)?old.actions:[];
@@ -93,6 +94,7 @@
       n.character.discoveries=Array.isArray(oc.discoveries)?oc.discoveries:[];
       n.character.importantEvents=Array.isArray(oc.importantEvents)?oc.importantEvents:[];
       n.character.signatureActionCount=oc.signatureActionCount||0;
+      n.character.specialAbilityUsedDay=oc.specialAbilityUsedDay??null;
       n.character.clear=oc.clear||'';
       n.character.reputation=oc.reputation||old.reputations||n.character.reputation;
       n.onboarded=true;
@@ -106,7 +108,7 @@
   }
     function setupCharacter(name,type,target=null){
     const c=target||characterShell(),d=VAGS[type];
-    c.name=name;c.vagabondType=type;c.startingItems=[...d.startingItems];c.specialAbility={...d.specialAbility};c.skills=[];c.milestones=[];c.pendingSkillChoices=0;c.discoveries=[];c.importantEvents=[];c.signatureActionCount=0;
+    c.name=name;c.vagabondType=type;c.startingItems=[...d.startingItems];c.specialAbility={...d.specialAbility};c.specialAbilityUsedDay=null;c.skills=[];c.milestones=[];c.pendingSkillChoices=0;c.discoveries=[];c.importantEvents=[];c.signatureActionCount=0;
     c.currentItems=d.startingItems.map(t=>item(t,'ready','starting'));
     c.reputation=c.reputation||{Marquesado:0,Eyrie:0,Alianza:0};c.clear=c.clear||'';
     return c;
@@ -158,21 +160,46 @@
     };draw();
   }
 
+  function abilityAvailable(){return S.character.specialAbilityUsedDay!==S.day}
+  function markAbilityUsed(){S.character.specialAbilityUsedDay=S.day}
   function useSpecialAbility(){
     const v=VAGS[S.character.vagabondType];if(!v)return;
-    if(countReady('torch')<1)return toast('Necesitas una Antorcha lista');
-    if(v.id==='thief')choiceSheet('STEAL','Agota una Antorcha y resuelve el robo con el actor presente.',[{icon:'faction-cat',label:'Marquesado'},{icon:'faction-bird',label:'Eyrie'},{icon:'faction-alliance',label:'Alianza'},{icon:'paw',label:'Otro actor'}],x=>{if(recordAction({actionId:'infiltrate',label:'STEAL',icon:'key',cost:1,meta:x.label,effect:()=>exhaustOne('torch')}))closeSheet()});
-    if(v.id==='tinker')openSheet('DAY LABOR','Recupera físicamente una carta apropiada del descarte.',`<div class="result-card"><div class="item-title">La app no elige la carta</div><div class="result-text">Selecciona la carta legal en el descarte físico y luego confirma.</div></div><button class="btn" id="confirmAbility" style="width:100%;margin-top:12px">Carta recuperada</button>`,()=>$('#confirmAbility').onclick=()=>{if(recordAction({actionId:'craft',label:'DAY LABOR',icon:'hammer',cost:1,effect:()=>exhaustOne('torch')}))closeSheet()});
+    if(!abilityAvailable())return toast('Ya usaste tu habilidad única hoy');
+
+    if(v.id==='thief'){
+      choiceSheet('STEAL','Una vez por día. Elige al actor presente en tu claro; el resultado físico sigue resolviéndose en mesa.',
+        [{icon:'faction-cat',label:'Marquesado'},{icon:'faction-bird',label:'Eyrie'},{icon:'faction-alliance',label:'Alianza'},{icon:'paw',label:'Otro actor'}],
+        x=>{if(recordAction({actionId:'infiltrate',label:'STEAL',icon:'key',cost:1,meta:x.label,effect:markAbilityUsed}))closeSheet()}
+      );
+    }
+
+    if(v.id==='tinker'){
+      openSheet('DAY LABOR','Una vez por día. Recupera físicamente una carta o recurso apropiado del descarte.',
+        `<div class="result-card"><div class="item-title">La app no elige la carta</div><div class="result-text">Selecciona una opción legal en el descarte físico y luego confirma.</div></div><button class="btn" id="confirmAbility" style="width:100%;margin-top:12px">Recurso recuperado</button>`,
+        ()=>$('#confirmAbility').onclick=()=>{if(recordAction({actionId:'craft',label:'DAY LABOR',icon:'hammer',cost:1,effect:markAbilityUsed}))closeSheet()}
+      );
+    }
+
     if(v.id==='ranger'){
       const damaged=S.character.currentItems.filter(i=>i.status==='damaged');
-      openSheet('HIDEOUT','Agota una Antorcha. Puedes reparar hasta 3 objetos dañados y termina tu jornada.',`<div class="choice-grid">${damaged.length?damaged.map(i=>`<button class="choice-btn" data-repair="${i.id}">${ico(ITEM_DEF[i.type].icon)}<span>${ITEM_DEF[i.type].name}</span></button>`).join(''):'<div class="empty">No hay objetos dañados. Puedes usar Hideout solo para retirarte.</div>'}</div><button class="btn" id="finishHideout" style="width:100%;margin-top:12px">Usar Hideout</button>`,root=>{
-        const picked=new Set();root.querySelectorAll('[data-repair]').forEach(b=>b.onclick=()=>{const id=b.dataset.repair;if(picked.has(id)){picked.delete(id);b.classList.remove('selected')}else if(picked.size<3){picked.add(id);b.classList.add('selected')}});
-        $('#finishHideout').onclick=()=>{picked.forEach(id=>{const it=getItem(id);if(it)it.status='ready'});exhaustOne('torch');S.phase='world';ensureWorld();addLog('HIDEOUT · retirada y reparación','rest');save();closeSheet();renderAll()}
-      });
+      openSheet('HIDEOUT','Una vez por día. Repara hasta 3 objetos dañados y termina inmediatamente tu jornada.',
+        `<div class="choice-grid">${damaged.length?damaged.map(i=>`<button class="choice-btn" data-repair="${i.id}">${ico(ITEM_DEF[i.type].icon)}<span>${ITEM_DEF[i.type].name}</span></button>`).join(''):'<div class="empty">No hay objetos dañados. Puedes usar Hideout solo para retirarte.</div>'}</div><button class="btn" id="finishHideout" style="width:100%;margin-top:12px">Usar Hideout</button>`,
+        root=>{
+          const picked=new Set();
+          root.querySelectorAll('[data-repair]').forEach(b=>b.onclick=()=>{const id=b.dataset.repair;if(picked.has(id)){picked.delete(id);b.classList.remove('selected')}else if(picked.size<3){picked.add(id);b.classList.add('selected')}});
+          $('#finishHideout').onclick=()=>{
+            picked.forEach(id=>{const it=getItem(id);if(it)it.status='ready'});
+            markAbilityUsed();
+            S.phase='world';ensureWorld();
+            addLog('HIDEOUT · retirada y reparación','rest');
+            save();closeSheet();renderAll();
+          };
+        }
+      );
     }
   }
 
-  function openAction(id){
+    function openAction(id){
     if(id==='special')return useSpecialAbility();
     if(id==='move')return chooseClear('Mover',c=>{if(recordAction({actionId:'move',label:`Mover al claro ${c}`,icon:'move',cost:1,clear:c}))closeSheet()});
     if(id==='observe')return choiceSheet('Observar','¿Dónde pones la atención?',[{icon:'eye',label:'Entorno'},{icon:'world',label:'Facción'},{icon:'card',label:'Rumor'},{icon:'landmark',label:'Lugar'}],c=>{if(recordAction({actionId:'observe',label:'Observar',icon:'eye',cost:1,meta:c.label}))closeSheet()});
@@ -181,25 +208,40 @@
     if(id==='trade')return choiceSheet('Comerciar','Elige el intercambio.',[{icon:'coin',label:'Comprar'},{icon:'coin',label:'Vender'},{icon:'key',label:'Sobornar'},{icon:'handshake',label:'Favores'}],c=>{if(recordAction({actionId:'trade',label:'Comerciar',icon:'coin',cost:1,meta:c.label}))closeSheet()});
     if(id==='infiltrate')return diceResolver({title:'Infiltrar',label:'Infiltrar',icon:'key',actionId:'infiltrate',cost:1});
     if(id==='combat')return diceResolver({title:'Combatir',label:'Combatir',icon:'sword',actionId:'combat',cost:1});
-    if(id==='explore')return diceResolver({title:'Explorar',label:'Explorar',icon:'torch',actionId:'explore',cost:1});
+    if(id==='explore')return choiceSheet('Explorar','La Antorcha solo se usa para entrar a ruinas.',[
+      {icon:'eye',label:'Explorar el claro',kind:'normal'},
+      {icon:'torch',label:'Entrar a una ruina',kind:'ruin'},
+      {icon:'landmark',label:'Investigar un lugar conocido',kind:'landmark'}
+    ],x=>{
+      if(x.kind==='ruin'){
+        if(countReady('torch')<1)return toast('Necesitas una Antorcha lista');
+        return diceResolver({title:'Explorar ruina',label:'Explorar ruina',icon:'torch',actionId:'explore',cost:1,after:()=>exhaustOne('torch')});
+      }
+      return diceResolver({title:x.label,label:x.label,icon:x.kind==='landmark'?'landmark':'eye',actionId:'explore',cost:1});
+    });
     if(id==='help')return choiceSheet('Apoyar facción','¿A quién? ',Object.keys(FACTIONS).map(n=>({icon:FACTIONS[n].icon,label:n})),f=>choiceSheet('Impacto','¿Cambió realmente la relación?',[{label:'Sin cambio',rep:0},{label:'+1 reputación',rep:1}],r=>{if(recordAction({actionId:'help',label:`Apoyar a ${f.label}`,icon:'handshake',cost:1,effect:()=>{if(r.rep)S.character.reputation[f.label]=clamp(S.character.reputation[f.label]+1,-3,3)}}))closeSheet()}));
     if(id==='craft'){if(!S.character.currentItems.some(i=>i.type==='hammer'&&i.status==='ready'))return toast('Necesitas un Martillo listo');return diceResolver({title:'Fabricar / reparar',label:'Fabricar / reparar',icon:'hammer',actionId:'craft',cost:1})}
     if(id==='rest')return choiceSheet('Descansar','Puedes preparar un objeto agotado.',S.character.currentItems.filter(i=>i.status==='exhausted').map(i=>({icon:ITEM_DEF[i.type].icon,label:ITEM_DEF[i.type].name,id:i.id})).concat([{icon:'rest',label:'Solo descansar',id:null}]),x=>{if(recordAction({actionId:'rest',label:'Descansar',icon:'rest',cost:2,effect:()=>{if(x.id)setItemStatus(x.id,'ready')}}))closeSheet()});
   }
 
   function milestone(id,label){if(S.character.milestones.some(m=>m.id===id))return;S.character.milestones.push({id,label,day:S.day,dateUnlocked:new Date().toISOString()});S.character.pendingSkillChoices++;addLog(`Nuevo hito: ${label}`,'star');toast('Nueva habilidad disponible')}
+  function regionalQuestMilestone(){
+    const counts=S.vagabondQuests?.counts||{};
+    for(const [suit,count] of Object.entries(counts)){
+      if(count>=3)milestone(`${MILESTONES.regionalQuest.id}_${suit}`,`${MILESTONES.regionalQuest.label} · ${SUITS[suit]?.name||suit}`);
+    }
+  }
   function evaluateMilestones(){
-    const complete=S.missions.filter(m=>m.status==='completed').length;
-    if(complete>=1)milestone(MILESTONES.firstMission.id,MILESTONES.firstMission.label);
-    if(complete>=3)milestone(MILESTONES.thirdMission.id,MILESTONES.thirdMission.label);
-    if(S.landmarks.some(l=>l.clear))milestone(MILESTONES.firstLandmark.id,MILESTONES.firstLandmark.label);
+    const completeWorld=S.missions.filter(m=>m.status==='completed'&&!m.vagabondQuest).length;
+    if(completeWorld>=3)milestone(MILESTONES.orderMissionVeteran.id,MILESTONES.orderMissionVeteran.label);
+    if(S.landmarks.some(l=>l.revealed))milestone(MILESTONES.firstLandmark.id,MILESTONES.firstLandmark.label);
     if(S.landmarks.some(l=>l.level>=3))milestone(MILESTONES.bondedLandmark.id,MILESTONES.bondedLandmark.label);
     if(Object.values(S.character.reputation).some(v=>v>=2))milestone(MILESTONES.firstTrustedFaction.id,MILESTONES.firstTrustedFaction.label);
-    if(new Set(S.character.currentItems.map(i=>i.type)).size>=5)milestone(MILESTONES.itemBreadth.id,MILESTONES.itemBreadth.label);
+    regionalQuestMilestone();
     if(S.character.signatureActionCount>=3)milestone(MILESTONES.signatureActions.id,MILESTONES.signatureActions.label);
     if(S.character.importantEvents.length)milestone(MILESTONES.majorWorldEvent.id,MILESTONES.majorWorldEvent.label);
   }
-  function skillDefs(){return VAGS[S.character.vagabondType]?.skills||[]}
+    function skillDefs(){return VAGS[S.character.vagabondType]?.skills||[]}
   function unlocked(id){return S.character.skills.some(s=>s.id===id)}
   function skillAvailable(s){return !unlocked(s.id)&&(s.unlockRequirements||[]).every(unlocked)}
   function unlockSkill(id){const d=skillDefs().find(s=>s.id===id);if(!d||!skillAvailable(d)||S.character.pendingSkillChoices<1)return;S.character.skills.push({...d,unlocked:true,dateUnlocked:new Date().toISOString()});S.character.pendingSkillChoices--;addLog(`Nueva habilidad: ${d.name}`,'star');save();renderAll();toast(d.name+' desbloqueada')}
@@ -219,6 +261,20 @@
     }[outcome]||['information'];
   }
   function rewardFor(o){return{'Batalló':'sword','Reclutó':'bag','Construyó':'hammer','Movió':'boot','Movilizó':'boot','Ganó territorio':'crossbow','Perdió territorio':'tea','Extendió simpatía':'coin','Revuelta':'torch'}[o]||'coin'}
+  function landmarkMissionFromOrder(origin,suit,outcomes){
+    const rules=[
+      {id:'forge',suit:'rabbit',tests:['Construyó'],title:'Humo tras las colinas',objective:'Sigue las caravanas de materiales y descubre quién trabaja lejos de los caminos.'},
+      {id:'market',suit:'fox',tests:['Movió','Reclutó','Perdió territorio'],title:'Tratos bajo la mesa',objective:'Sigue una cadena de favores y descubre dónde comercian quienes no quieren ser vistos.'},
+      {id:'ruins',suit:'mouse',tests:['Batalló','Perdió territorio'],title:'Piedras bajo las raíces',objective:'Investiga lo que quedó expuesto tras el conflicto y encuentra una entrada olvidada.'},
+      {id:'tree',suit:'bird',tests:['Movió','Reclutó'],title:'Voces en las ramas',objective:'Sigue a viajeros y mensajeros hasta un refugio neutral del bosque.'}
+    ];
+    const r=rules.find(x=>x.suit===suit&&x.tests.some(t=>outcomes.includes(t)));
+    if(!r)return null;
+    const lm=S.landmarks.find(l=>l.id===r.id);
+    if(!lm||lm.revealed||S.missions.some(m=>m.status==='active'&&m.landmarkUnlock===r.id))return null;
+    return{id:uid(),day:S.day,origin,suit,title:r.title,objective:r.objective,reward:null,status:'active',stage:'lead',targetClear:null,tags:['hidden_location','discovery'],source:{outcome:outcomes[0]||'',outcomes},landmarkUnlock:r.id};
+  }
+
   function missionDraft(origin,suit,outcomes){
     const p=outcomes[0]||'Movió',land=SUITS[suit]?.name||'bosque',d={
       'Batalló':['Tras las líneas',`Aprovecha el conflicto de ${origin} en territorio ${land} sin quedar atrapado.`],
@@ -239,8 +295,32 @@
 
   function orderFace(origin,suit){const f=FACTIONS[origin],s=SUITS[suit];return`<div class="order-face"><svg class="ico order-face-art"><use href="./icons.svg#scene-${suit}"></use></svg><div class="order-suit-medallion">${ico(s.icon)}</div><span class="order-face-label">${s.name}</span></div>`}
   function openBot(name){ensureWorld();const f=FACTIONS[name],old=S.world.records[name]||{suit:null,outcomes:[]},d={suit:old.suit,outcomes:[...old.outcomes]};openSheet(name,'Carta de Orden + cambios reales en mesa.','');const draw=()=>{sheet.content.innerHTML=`${d.suit?orderFace(name,d.suit):''}<div class="sheet-label" style="margin-top:12px">Carta de Orden</div><div class="suit-row">${Object.entries(SUITS).map(([id,s])=>`<button class="suit-btn ${d.suit===id?'selected':''}" data-s="${id}">${ico(s.icon)}</button>`).join('')}</div><div class="sheet-label" style="margin-top:12px">Qué ocurrió</div><div class="choice-grid">${f.outcomes.map((o,i)=>`<button class="choice-btn ${d.outcomes.includes(o)?'selected':''}" data-o="${i}">${o}</button>`).join('')}</div><button class="btn" id="saveOrder" style="width:100%;margin-top:12px" ${d.suit?'':'disabled'}>Sellar orden</button><button class="btn secondary" data-close style="width:100%;margin-top:8px">Cerrar</button>`;sheet.content.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>{d.suit=x.dataset.s;draw()});sheet.content.querySelectorAll('[data-o]').forEach(x=>x.onclick=()=>{const o=f.outcomes[+x.dataset.o];d.outcomes=d.outcomes.includes(o)?d.outcomes.filter(y=>y!==o):[...d.outcomes,o];draw()});sheet.content.querySelector('[data-close]').onclick=closeSheet;$('#saveOrder').onclick=()=>{S.world.records[name]={suit:d.suit,outcomes:d.outcomes};S.world.resolved[name]=true;addLog(`Orden de ${name}: ${SUITS[d.suit].name}`,'card');save();closeSheet();renderAll();if(activeBots().every(n=>S.world.resolved[n]))setTimeout(openHarvest,150)}};draw()}
-  function openHarvest(){if(!activeBots().every(n=>S.world.resolved[n]))return toast('Quedan órdenes pendientes');const seeds=activeBots().map(n=>({origin:n,...S.world.records[n]}));let i=0;const next=()=>{if(i>=seeds.length)return finishWorld();const s=seeds[i],m=missionDraft(s.origin,s.suit,s.outcomes),r=rumorDraft(s.origin,s.suit,s.outcomes,m),f=FACTIONS[s.origin];openSheet(`Consecuencia · ${s.origin}`,'¿Qué deja esta orden en el mundo?',`${orderFace(s.origin,s.suit)}<div class="rumor-card" style="--rumor-color:${f.color};margin-top:12px"><div class="rumor-copy">“${esc(r.text)}”</div></div><div class="choice-grid" style="margin-top:12px"><button class="choice-btn" id="asRumor">${ico('card')}Rumor</button><button class="choice-btn" id="asMission">${ico('star')}Misión</button><button class="choice-btn" id="asBackground">${ico('world')}Fondo</button></div>`,()=>{$('#asRumor').onclick=()=>{if(S.rumors.length<3)S.rumors.push(r);i++;closeSheet();next()};$('#asMission').onclick=()=>{S.missions.push(m);i++;closeSheet();next()};$('#asBackground').onclick=()=>{i++;closeSheet();next()}})};next()}
-  function finishWorld(){
+  function openHarvest(){
+    if(!activeBots().every(n=>S.world.resolved[n]))return toast('Quedan órdenes pendientes');
+    const seeds=activeBots().map(n=>({origin:n,...S.world.records[n]}));let i=0;
+    const next=()=>{
+      if(i>=seeds.length)return finishWorld();
+      const s=seeds[i],m=missionDraft(s.origin,s.suit,s.outcomes),special=landmarkMissionFromOrder(s.origin,s.suit,s.outcomes),r=rumorDraft(s.origin,s.suit,s.outcomes,m),f=FACTIONS[s.origin];
+      openSheet(`Consecuencia · ${s.origin}`,'¿Qué deja esta orden en el mundo?',
+        `${orderFace(s.origin,s.suit)}
+        ${special?`<div class="result-card" style="margin-top:12px"><div class="item-title">Señal excepcional</div><div class="result-text">${esc(special.title)} · podría conducir a un Lugar Mítico.</div></div>`:''}
+        <div class="rumor-card" style="--rumor-color:${f.color};margin-top:12px"><div class="rumor-copy">“${esc(r.text)}”</div></div>
+        <div class="choice-grid" style="margin-top:12px">
+          ${special?'<button class="choice-btn" id="asLandmarkMission">'+ico('landmark')+'Misión de descubrimiento</button>':''}
+          <button class="choice-btn" id="asRumor">${ico('card')}Rumor</button>
+          <button class="choice-btn" id="asMission">${ico('star')}Misión</button>
+          <button class="choice-btn" id="asBackground">${ico('world')}Fondo</button>
+        </div>`,
+        ()=>{
+          const lm=$('#asLandmarkMission');if(lm)lm.onclick=()=>{S.missions.push(special);i++;closeSheet();next()};
+          $('#asRumor').onclick=()=>{if(S.rumors.length<3)S.rumors.push(r);i++;closeSheet();next()};
+          $('#asMission').onclick=()=>{S.missions.push(m);i++;closeSheet();next()};
+          $('#asBackground').onclick=()=>{i++;closeSheet();next()};
+        }
+      );
+    };next();
+  }
+    function finishWorld(){
     archiveOrders();
     addLog('Fase del Mundo cerrada.','world');
 
@@ -334,6 +414,17 @@
   function enterScene(m){m.stage='scene';save();renderMissions()}
 
   function claimReward(m,rewardType=null){
+    if(m.landmarkUnlock){
+      const lm=S.landmarks.find(l=>l.id===m.landmarkUnlock);
+      if(lm){
+        lm.revealed=true;lm.clear=String(m.targetClear||S.character.clear||'');
+        S.character.discoveries.push({type:'landmark',id:lm.id,day:S.day});
+        m.status='completed';m.stage='done';
+        addLog(`Lugar Mítico descubierto: ${lm.name}`,'landmark');
+        evaluateMilestones();save();renderAll();toast(lm.name+' descubierto');
+        return;
+      }
+    }
     const chosen=rewardType||m.reward;
     S.character.currentItems.push(item(chosen,'ready','mission'));
     m.status='completed';m.stage='done';m.claimedReward=chosen;
@@ -342,7 +433,7 @@
   }
 
     function renderHeader(){const v=VAGS[S.character.vagabondType];$('#heroName').textContent=S.campaign;$('#heroSubtitle').textContent=`Día ${S.day} · ${S.character.name||'Vagabundo'}`;$('#heroType').textContent=v?.name||'—';$('#heroClear').textContent=S.character.clear||'—';$('#heroItems').textContent=S.character.currentItems.length;$('#heroMilestones').textContent=S.character.milestones.length;$('#timeText').textContent=`${S.time} / 4`;$$('#timePips .time-pip').forEach((p,i)=>p.classList.toggle('on',i<S.time))}
-  function renderActions(){const g=$('#actionGrid');g.innerHTML='';ACTIONS.forEach(a=>{const b=document.createElement('button');b.className=`action-btn ${a.tone||''}`;const label=a.id==='special'?(VAGS[S.character.vagabondType]?.specialAbility.name||a.label):a.label;b.innerHTML=`<div class="action-icon">${ico(a.icon)}</div><div><div class="action-label">${label}</div><div class="action-cost">${a.cost} tiempo</div></div>`;b.onclick=()=>openAction(a.id);g.appendChild(b)})}
+  function renderActions(){const g=$('#actionGrid');g.innerHTML='';ACTIONS.forEach(a=>{const b=document.createElement('button');b.className=`action-btn ${a.tone||''}`;const label=a.id==='special'?(VAGS[S.character.vagabondType]?.specialAbility.name||a.label):a.label;b.innerHTML=`<div class="action-icon">${ico(a.icon)}</div><div><div class="action-label">${label}</div><div class="action-cost">${a.id==='special'?(abilityAvailable()?'1/día · disponible':'1/día · usada'):(a.cost+' tiempo')}</div></div>`;b.onclick=()=>openAction(a.id);g.appendChild(b)})}
   function renderToday(){const b=$('#todayTimeline'),arr=S.actions.filter(a=>a.day===S.day);$('#todayCount').textContent=`${arr.length} ${arr.length===1?'acción':'acciones'}`;b.innerHTML=arr.length?'':'<div class="empty">El día está abierto.</div>';arr.forEach(a=>{const r=document.createElement('div');r.className='timeline-item';r.innerHTML=`<div class="timeline-icon">${ico(a.icon||'spark')}</div><div><div class="timeline-title">${esc(a.label)}</div><div class="timeline-meta">${esc(a.meta||'')}${a.clear?' · Claro '+a.clear:''}</div></div><span class="tag">${a.cost}t</span>`;b.appendChild(r)});$('#endDayBtn').style.display=S.phase==='world'?'none':'block'}
   function renderWorldBanner(){const h=$('#worldBanner');if(S.phase!=='world'){h.innerHTML='';return}ensureWorld();const bs=activeBots(),done=bs.filter(n=>S.world.resolved[n]).length;h.innerHTML=`<div class="world-banner"><div><h3>Fase del Mundo</h3><p>${done}/${bs.length} órdenes resueltas.</p></div><button class="btn secondary" id="goWorld">Resolver</button></div>`;$('#goWorld').onclick=()=>switchView('mundo')}
 
@@ -361,7 +452,7 @@
             <div class="ability-kicker">Habilidad única</div>
             <div class="ability-title">${v.specialAbility.name}</div>
             <div class="ability-copy">${esc(v.specialAbility.description)}</div>
-            <button class="chip" id="useAbilityFromSheet" style="margin-top:9px">Usar habilidad</button>
+            <button class="chip ${abilityAvailable()?'active':''}" id="useAbilityFromSheet" style="margin-top:9px">${abilityAvailable()?'Disponible · 1/día':'Usada hoy'}</button>
           </div>
         </div>
       </div>
@@ -378,6 +469,57 @@
   function renderBots(){ensureWorld();const b=$('#botList');b.innerHTML='';activeBots().forEach(n=>{const f=FACTIONS[n],r=S.world.records[n],done=S.world.resolved[n],c=document.createElement('div');c.className=`order-card ${f.className}`;c.innerHTML=`<div class="order-ribbon"></div><div class="order-card-body"><div class="order-card-head"><div class="order-faction"><div class="faction-seal ${f.className}">${ico(f.icon)}</div><div><div class="order-card-title">${n}</div><div class="order-card-status">${S.phase==='world'?(done?'Orden sellada':'Carta pendiente'):'Esperando Fase del Mundo'}</div></div></div><span class="tag">${r?.suit?SUITS[r.suit].name:'Sin carta'}</span></div>${r?.suit?orderFace(n,r.suit):''}<div class="order-card-actions"><button class="btn ${done?'secondary':''}" data-b ${S.phase!=='world'?'disabled':''}>${done?'Editar':'Resolver'}</button></div></div>`;c.querySelector('[data-b]').onclick=()=>openBot(n);b.appendChild(c)});if(S.phase==='world'){const ok=activeBots().every(n=>S.world.resolved[n]),c=document.createElement('div');c.className='bot-card';c.innerHTML=`<button class="btn gold" id="harvestBtn" style="width:100%" ${ok?'':'disabled'}>Procesar consecuencias</button>`;b.appendChild(c);$('#harvestBtn').onclick=openHarvest}}
   function renderOrderHistory(){const b=$('#orderHistoryList');b.innerHTML=S.orderHistory.length?'':'<div class="empty">Aquí quedarán las Cartas de Orden.</div>';S.orderHistory.slice(0,10).forEach(o=>{const r=document.createElement('div');r.className='order-history-card';r.innerHTML=`<div class="order-history-suit">${ico(SUITS[o.suit]?.icon||'card')}</div><div><div class="order-history-title">${o.origin} · ${SUITS[o.suit]?.name||''}</div><div class="order-history-meta">${o.outcomes.join(' · ')} · Día ${o.day}</div></div><span class="tag">D${o.day}</span>`;b.appendChild(r)})}
   function renderStates(){const b=$('#statesList');b.innerHTML=S.states.length?'':'<div class="empty">Sin estados activos.</div>';S.states.forEach((s,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div class="item-head"><div class="item-title">Claro ${s.clear} · ${s.name}</div><button class="chip">Resolver</button></div>`;d.querySelector('button').onclick=()=>{S.states.splice(i,1);save();renderStates()};b.appendChild(d)})}
+  function questRequirementsMet(q){
+    if(!q)return false;
+    const need={};q.items.forEach(i=>need[i]=(need[i]||0)+1);
+    return Object.entries(need).every(([type,n])=>countReady(type)>=n);
+  }
+  function configureQuestSlot(index){
+    choiceSheet('Carta de Misión','Selecciona el palo impreso en la carta física.',Object.entries(SUITS).map(([id,s])=>({icon:s.icon,label:s.name,id})),s1=>{
+      choiceSheet('Primer objeto','Toca el primer objeto impreso.',Object.entries(ITEM_DEF).map(([id,d])=>({icon:d.icon,label:d.name,id})),i1=>{
+        choiceSheet('Segundo objeto','Toca el segundo objeto impreso.',Object.entries(ITEM_DEF).map(([id,d])=>({icon:d.icon,label:d.name,id})),i2=>{
+          S.vagabondQuests.slots[index]={id:uid(),suit:s1.id,items:[i1.id,i2.id]};
+          save();closeSheet();renderVagabondQuests();
+        });
+      });
+    });
+  }
+  function completeVagabondQuest(index){
+    const q=S.vagabondQuests.slots[index];if(!q)return configureQuestSlot(index);
+    if(!questRequirementsMet(q))return toast('No tienes los dos objetos requeridos listos');
+    choiceSheet('Completar encargo',`Confirma físicamente que estás en un claro de ${SUITS[q.suit].name}.`,[
+      {icon:SUITS[q.suit].icon,label:'Sí · estoy en el claro correcto'},
+      {icon:'close',label:'No · cancelar',cancel:true}
+    ],x=>{
+      if(x.cancel)return closeSheet();
+      q.items.forEach(type=>exhaustOne(type));
+      S.vagabondQuests.completed.push({...q,day:S.day});
+      S.vagabondQuests.counts[q.suit]=(S.vagabondQuests.counts[q.suit]||0)+1;
+      S.vagabondQuests.slots[index]=null;
+      addLog(`Encargo del Vagabundo completado · ${SUITS[q.suit].name}`,'card');
+      evaluateMilestones();save();closeSheet();renderAll();
+      toast('Reemplaza físicamente la carta y configura la nueva');
+    });
+  }
+  function renderVagabondQuests(){
+    const b=$('#vagabondQuestList'),p=$('#regionalQuestProgress');
+    if(!b||!p)return;
+    b.innerHTML='';
+    S.vagabondQuests.slots.forEach((q,i)=>{
+      const d=document.createElement('div');d.className='vagabond-quest-card';
+      if(!q){
+        d.innerHTML=`<div class="quest-empty-icon">${ico('card')}</div><strong>Carta ${i+1}</strong><small>Coloca una carta física boca arriba y regístrala.</small><button class="btn secondary" data-config>Configurar carta</button>`;
+        d.querySelector('[data-config]').onclick=()=>configureQuestSlot(i);
+      }else{
+        d.innerHTML=`<div class="quest-card-suit">${ico(SUITS[q.suit].icon)}<span>${SUITS[q.suit].name}</span></div><div class="quest-item-pair">${q.items.map(x=>`<span>${ico(ITEM_DEF[x].icon)}${ITEM_DEF[x].name}</span>`).join('')}</div><div class="quest-card-status">${questRequirementsMet(q)?'Objetos listos':'Faltan objetos listos'}</div><div class="btn-row"><button class="btn" data-complete>Completar</button><button class="btn secondary" data-edit>Editar</button></div>`;
+        d.querySelector('[data-complete]').onclick=()=>completeVagabondQuest(i);
+        d.querySelector('[data-edit]').onclick=()=>configureQuestSlot(i);
+      }
+      b.appendChild(d);
+    });
+    p.innerHTML=Object.entries(SUITS).map(([id,s])=>`<div class="regional-chip">${ico(s.icon)}<span>${s.name}</span><strong>${S.vagabondQuests.counts[id]||0}/3</strong></div>`).join('');
+  }
+
   function renderRumors(){
     const b=$('#rumorsList');
     $('#rumorCounter').textContent=`${S.rumors.length} / 3`;
@@ -409,7 +551,7 @@
     b.innerHTML=ms.length?'':'<div class="empty">Las Órdenes pueden abrir misiones.</div>';
 
     ms.forEach(m=>{
-      const f=FACTIONS[m.origin]||FACTIONS.Marquesado,reward=ITEM_DEF[m.reward],d=document.createElement('div');
+      const f=FACTIONS[m.origin]||FACTIONS.Marquesado,reward=m.landmarkUnlock?null:ITEM_DEF[m.reward],d=document.createElement('div');
       d.className='mission';d.style.setProperty('--mission-color',f.color);
 
       const stages=['lead','travel','scene'];
@@ -431,10 +573,15 @@
         action=`${opts.map((o,i)=>`<button class="btn gold mission-skill-option" data-skill="${i}"><span>${esc(o.label)}</span><small>${esc(o.skill)} · ${o.resolution==='special'?'+2':'+1'}</small></button>`).join('')}<button class="btn" data-generic>Resolver sin habilidad</button>`;
       }
       if(m.stage==='reward'){
-        const alt=m.reward==='coin'?'bag':'coin';
-        action=m.rewardChoice
-          ?`<button class="btn gold" data-reward="${m.reward}">Tomar ${reward.name}</button><button class="btn secondary" data-reward="${alt}">Elegir ${ITEM_DEF[alt].name}</button>`
-          :`<button class="btn gold" data-reward="${m.reward}">Tomar ${reward.name}</button>`;
+        if(m.landmarkUnlock){
+          const lm=S.landmarks.find(l=>l.id===m.landmarkUnlock);
+          action=`<button class="btn gold" data-reward="landmark">Descubrir ${lm?.name||'Lugar Mítico'}</button>`;
+        }else{
+          const alt=m.reward==='coin'?'bag':'coin';
+          action=m.rewardChoice
+            ?`<button class="btn gold" data-reward="${m.reward}">Tomar ${reward.name}</button><button class="btn secondary" data-reward="${alt}">Elegir ${ITEM_DEF[alt].name}</button>`
+            :`<button class="btn gold" data-reward="${m.reward}">Tomar ${reward.name}</button>`;
+        }
       }
 
       d.innerHTML=`
@@ -445,7 +592,7 @@
           ${progress}
           ${m.targetClear?`<div class="mission-location">${ico('pin')} Objetivo · claro ${esc(m.targetClear)}</div>`:''}
           <div class="mission-separator"></div>
-          <div class="reward-panel"><div class="reward-token">${ico(reward.icon)}</div><div class="reward-copy"><small>Recompensa potencial</small><strong>${reward.name}</strong></div></div>
+          ${m.landmarkUnlock?`<div class="reward-panel"><div class="reward-token">${ico('landmark')}</div><div class="reward-copy"><small>Descubrimiento</small><strong>${S.landmarks.find(l=>l.id===m.landmarkUnlock)?.name||'Lugar Mítico'}</strong></div></div>`:`<div class="reward-panel"><div class="reward-token">${ico(reward.icon)}</div><div class="reward-copy"><small>Recompensa potencial</small><strong>${reward.name}</strong></div></div>`}
           <div class="mission-actions dynamic-actions">${action}</div>
         </div>`;
 
@@ -455,14 +602,24 @@
       if(q('[data-journey]'))q('[data-journey]').onclick=()=>moveToMission(m);
       if(q('[data-generic]'))q('[data-generic]').onclick=()=>resolveMission(m);
       d.querySelectorAll('[data-skill]').forEach(x=>x.onclick=()=>resolveMission(m,missionOptions(m)[+x.dataset.skill]));
-      d.querySelectorAll('[data-reward]').forEach(x=>x.onclick=()=>claimReward(m,x.dataset.reward));
+      d.querySelectorAll('[data-reward]').forEach(x=>x.onclick=()=>claimReward(m,x.dataset.reward==='landmark'?null:x.dataset.reward));
       b.appendChild(d);
     });
   }
 
-    function renderLandmarks(){const b=$('#landmarksList');b.innerHTML='';S.landmarks.forEach(l=>{const d=document.createElement('div');d.className='landmark';d.innerHTML=`<div class="landmark-top"><div class="landmark-icon">${ico(l.icon)}</div><div><div class="landmark-name">${l.name}</div><div class="landmark-desc">${l.description}</div></div><span class="tag">${l.clear?'Claro '+l.clear:'Oculto'}</span></div><div class="landmark-actions">${!l.clear?'<button class="chip" data-reveal>Revelar</button>':''}${l.clear&&l.level<3?`<button class="chip" data-progress>${['','Visitar','Explorar','Vincular'][l.level+1]}</button>`:''}</div>`;const r=d.querySelector('[data-reveal]');if(r)r.onclick=()=>chooseClear('Ubicar · '+l.name,c=>{l.clear=String(c);S.character.discoveries.push({type:'landmark',id:l.id,day:S.day});evaluateMilestones();save();closeSheet();renderAll()});const p=d.querySelector('[data-progress]');if(p)p.onclick=()=>{l.level++;evaluateMilestones();save();renderAll()};b.appendChild(d)})}
-  function renderHistory(){const b=$('#historyList');b.innerHTML=S.log.length?'':'<div class="empty">El bosque todavía no tiene historia.</div>';S.log.slice(0,80).forEach(x=>{const d=document.createElement('div');d.className='timeline-item';d.innerHTML=`<div class="timeline-icon">${ico(x.icon||'scroll')}</div><div><div class="timeline-title">${esc(x.text)}</div><div class="timeline-meta">Día ${x.day}</div></div></div>`;b.appendChild(d)})}
-  function renderAll(){renderHeader();renderActions();renderToday();renderWorldBanner();renderCharacter();renderInventory();renderSkillTree();renderMilestones();renderReputation();renderBots();renderOrderHistory();renderStates();renderRumors();renderMissions();renderLandmarks();renderHistory()}
+    function renderLandmarks(){
+    const b=$('#landmarksList'),visible=S.landmarks.filter(l=>l.revealed);
+    b.innerHTML='';
+    if(!visible.length){b.innerHTML='<div class="empty">Todavía no has descubierto ningún Lugar Mítico. Algunos aparecen mediante misiones especiales nacidas de Cartas de Orden.</div>';return}
+    visible.forEach(l=>{
+      const d=document.createElement('div');d.className='landmark';
+      d.innerHTML=`<div class="landmark-top"><div class="landmark-icon">${ico(l.icon)}</div><div><div class="landmark-name">${l.name}</div><div class="landmark-desc">${l.description}</div></div><span class="tag">${l.clear?'Claro '+l.clear:'Descubierto'}</span></div><div class="landmark-actions">${l.level<3?`<button class="chip" data-progress>${['Visitar','Explorar','Vincular'][l.level]}</button>`:'<span class="chip active">Vinculado</span>'}</div>`;
+      const p=d.querySelector('[data-progress]');if(p)p.onclick=()=>{l.level++;evaluateMilestones();save();renderAll()};
+      b.appendChild(d);
+    });
+  }
+    function renderHistory(){const b=$('#historyList');b.innerHTML=S.log.length?'':'<div class="empty">El bosque todavía no tiene historia.</div>';S.log.slice(0,80).forEach(x=>{const d=document.createElement('div');d.className='timeline-item';d.innerHTML=`<div class="timeline-icon">${ico(x.icon||'scroll')}</div><div><div class="timeline-title">${esc(x.text)}</div><div class="timeline-meta">Día ${x.day}</div></div></div>`;b.appendChild(d)})}
+  function renderAll(){renderHeader();renderActions();renderToday();renderWorldBanner();renderCharacter();renderInventory();renderSkillTree();renderMilestones();renderReputation();renderBots();renderOrderHistory();renderStates();renderRumors();renderMissions();renderVagabondQuests();renderLandmarks();renderHistory()}
   function switchView(n){$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===n));$$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+n));window.scrollTo({top:0,behavior:'smooth'})}
   $$('.nav-btn').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
