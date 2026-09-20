@@ -88,3 +88,17 @@ La campaña guarda:
 - mundo y Órdenes.
 
 Todo persiste localmente y puede exportarse/importarse en JSON.
+
+
+## v0.8 — Rules alignment
+- Unique Vagabond ability is once per day and no longer consumes Torch.
+- Torch is reserved for ruins / dark exploration.
+- Official starting item sets are preserved for Thief, Ranger, and Tinker.
+- Skill progression is milestone-based, not XP-based.
+- Landmarks stay hidden until a specific Order-derived discovery mission reveals them.
+- Physical Vagabond Quest cards are tracked separately from world missions:
+  - keep 3 face-up cards;
+  - register suit + two printed item requirements;
+  - complete them only in a matching clearing and with those items ready;
+  - required items become exhausted;
+  - 3 completed quests of the same suit grant a regional milestone / skill choice.
