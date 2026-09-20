@@ -459,23 +459,89 @@
     if(!activeBots().every(n=>S.world.resolved[n]))return toast('Quedan órdenes pendientes');
     const seeds=activeBots().map(n=>({origin:n,...S.world.records[n]}));
     let i=0;
+
     function next(){
       if(i>=seeds.length){finishWorld();return}
-      const seed=seeds[i],m=missionDraft(seed.origin,seed.suit,seed.outcomes),r=rumorDraft(seed.origin,seed.suit,seed.outcomes,m),f=FACTIONS[seed.origin];
-      openSheet(`Orden de ${seed.origin}`,`${SUITS[seed.suit].name} · ${seed.outcomes.join(' · ')||'sin cambio destacado'}`,`
-        <div class="result-card"><div class="item-title">${esc(r.text)}</div><div class="result-text">¿Qué deja esta orden en el mundo?</div></div>
-        <div class="sheet-section"><div class="choice-grid">
-          <button class="choice-btn" id="asRumor">${ico('card')}<span>Rumor</span></button>
-          <button class="choice-btn" id="asMission">${ico('star')}<span>Misión</span></button>
-          <button class="choice-btn" id="asBackground">${ico('world')}<span>Fondo</span></button>
-        </div></div>
-        <div class="result-card"><div class="item-title">Recompensa potencial</div><div class="result-text">${ITEM_DEF[m.reward].name} + 1 XP si esta orden termina convertida en misión y la completas.</div></div>
-      `,()=>{
-        $('#asRumor').onclick=()=>{if(S.rumors.length<3){S.rumors.push(r);addLog(`Rumor: ${r.text}`,'card')}else addLog(`Rumor descartado por límite activo: ${r.text}`,'card');i++;closeSheet();next()};
-        $('#asMission').onclick=()=>{S.missions.push(m);addLog(`Nueva misión: ${m.title}`,'star');i++;closeSheet();next()};
-        $('#asBackground').onclick=()=>{addLog(`La orden de ${seed.origin} queda como cambio de fondo.`,f.icon);i++;closeSheet();next()};
-      });
+
+      const seed=seeds[i];
+      const m=missionDraft(seed.origin,seed.suit,seed.outcomes);
+      const r=rumorDraft(seed.origin,seed.suit,seed.outcomes,m);
+      const f=FACTIONS[seed.origin];
+      const reward=ITEM_DEF[m.reward];
+
+      openSheet(
+        `Consecuencia · ${seed.origin}`,
+        'La misma Carta de Orden puede quedarse como ruido de fondo o abrir una historia jugable.',
+        `
+          <div class="order-preview">
+            <div class="order-ribbon" style="background:${f.color}"></div>
+            ${orderFace(seed.origin,seed.suit)}
+            <div class="order-preview-copy">
+              <strong>${seed.origin} · ${SUITS[seed.suit].name}</strong>
+              <span>${seed.outcomes.length?seed.outcomes.map(esc).join(' · '):'Sin cambio destacado.'}</span>
+            </div>
+          </div>
+
+          <div class="sheet-section">
+            <div class="sheet-label">Qué deja esta orden</div>
+            <div class="choice-grid">
+              <button class="choice-btn" id="asRumor">${ico('card')}<span>Rumor</span></button>
+              <button class="choice-btn" id="asMission">${ico('star')}<span>Misión</span></button>
+              <button class="choice-btn" id="asBackground">${ico('world')}<span>Fondo</span></button>
+            </div>
+          </div>
+
+          <div class="rumor-card" style="--rumor-color:${f.color};margin-top:12px">
+            <div class="rumor-head">
+              <div class="rumor-source">
+                <div class="faction-seal ${f.className}">${ico(f.icon)}</div>
+                <div><div class="item-title">Posible rumor</div><div class="item-meta">${SUITS[seed.suit].name}</div></div>
+              </div>
+              <span class="tag">Rumor</span>
+            </div>
+            <div class="rumor-copy">“${esc(r.text)}”</div>
+          </div>
+
+          <div class="mission" style="--mission-color:${f.color};margin-top:12px">
+            <div class="mission-ribbon"></div>
+            <div class="mission-inner">
+              <div class="mission-head">
+                <div><div class="mission-kicker">Posible misión</div><div class="mission-title">${esc(m.title)}</div></div>
+                <div class="faction-seal ${f.className}">${ico(f.icon)}</div>
+              </div>
+              <div class="mission-objective">${esc(m.objective)}</div>
+              <div class="mission-separator"></div>
+              <div class="reward-panel">
+                <div class="reward-token">${ico(reward.icon)}</div>
+                <div class="reward-copy"><small>Recompensa potencial</small><strong>${reward.name} + 1 XP</strong></div>
+              </div>
+            </div>
+          </div>
+        `,
+        ()=>{
+          $('#asRumor').onclick=()=>{
+            if(S.rumors.length<3){
+              S.rumors.push(r);
+              addLog(`Rumor: ${r.text}`,'card');
+            }else{
+              addLog(`Rumor descartado por límite activo: ${r.text}`,'card');
+              toast('Ya tienes 3 rumores activos');
+            }
+            i++;closeSheet();next();
+          };
+          $('#asMission').onclick=()=>{
+            S.missions.push(m);
+            addLog(`Nueva misión: ${m.title}`,'star');
+            i++;closeSheet();next();
+          };
+          $('#asBackground').onclick=()=>{
+            addLog(`La orden de ${seed.origin} queda como cambio de fondo.`,f.icon);
+            i++;closeSheet();next();
+          };
+        }
+      );
     }
+
     next();
   }
 
