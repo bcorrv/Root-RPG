@@ -478,6 +478,6 @@
   $('#creatorBackBtn').onclick=()=>showCreatorStep('name');$('#creatorEditBtn').onclick=()=>showCreatorStep('type');
   $('#startCampaignBtn').onclick=()=>{if(!draftName||!draftType)return;const oldWorld={day:S.day,time:S.time,phase:S.phase,bots:S.bots,world:S.world,orderHistory:S.orderHistory,states:S.states,rumors:S.rumors,missions:S.missions,landmarks:S.landmarks,log:S.log,actions:S.actions};S.character=setupCharacter(draftName,draftType,S.character);S.campaign='Crónicas de '+draftName;S.onboarded=true;Object.assign(S,oldWorld);save();$('#onboarding').classList.remove('open');addLog(`${draftName} entra al bosque como ${VAGS[draftType].name}.`,'paw');renderAll();if(!S.character.clear)setTimeout(()=>chooseClear('¿Dónde comienza tu Vagabundo?',c=>{S.character.clear=String(c);save();closeSheet();renderAll()}),120)};
 
-  ensureWorld();if(!S.onboarded||!S.character.vagabondType)showCreator();renderAll();
+  ensureWorld();if(!S.onboarded||!S.character.vagabondType)showCreator();renderAll();save();
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 })();
