@@ -72,7 +72,7 @@
 
   function fresh(){
     return {
-      version:'0.4',
+      version:'0.5',
       onboarded:false,
       playerName:'',
       campaign:'Crónicas del Bosque',
@@ -665,7 +665,7 @@
     <div class="setting-row"><div><div class="item-title">Jugador</div><div class="meta">${esc(S.playerName||'Sin nombre')}</div></div><button class="chip" id="editName">Editar</button></div>
     <div class="setting-row"><div><div class="item-title">Claro actual</div><div class="meta">${S.character.clear?'Claro '+esc(S.character.clear):'Sin fijar'}</div></div><button class="chip" id="setLoc">Cambiar</button></div>
     <div class="setting-row"><div><div class="item-title">Alianza Automatizada</div><div class="meta">${S.bots.Alianza?'Activa':'Inactiva'} en la Fase del Mundo.</div></div><button class="chip ${S.bots.Alianza?'active':''}" id="toggleAlliance">${S.bots.Alianza?'Activa':'Activar'}</button></div>
-    <div class="setting-row"><div><div class="item-title">Versión</div><div class="meta">v0.4 · Mesa de Órdenes + misiones</div></div><span class="tag">button-first</span></div>
+    <div class="setting-row"><div><div class="item-title">Versión</div><div class="meta">v0.5 · Cartas físicas + Mesa de Órdenes</div></div><span class="tag">button-first</span></div>
   `,()=>{
     $('#editName').onclick=()=>{closeSheet();showOnboarding()};
     $('#setLoc').onclick=()=>{closeSheet();chooseClear('Claro actual',c=>{S.character.clear=String(c);save();closeSheet();renderAll()})};
