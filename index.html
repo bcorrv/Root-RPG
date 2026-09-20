@@ -56,30 +56,16 @@
     </section>
 
     <section class="view" id="view-personaje">
-      <div class="section-head"><h3>Mi Vagabundo</h3><span id="characterTypeLabel">aventurero del bosque</span></div>
-      <div class="character-sheet">
-        <div class="character-portrait-wrap"><img id="characterPortrait" class="character-portrait" alt="Retrato del vagabundo"></div>
-        <div class="character-sheet-copy">
-          <div class="eyebrow dark-eyebrow" id="characterArchetype">VAGABUNDO</div>
-          <div class="character-name big" id="characterName">—</div>
-          <div class="character-tagline" id="characterTagline"></div>
-          <div class="ability-card" id="specialAbilityCard"></div>
-        </div>
-      </div>
-
-      <div id="skillReadyBanner"></div>
-
-      <div class="section-head"><h3>Objetos</h3><span>estado físico del equipo</span></div>
+      <div class="section-head"><h3>Mi Vagabundo</h3><span id="vagabondTypeLabel">aventurero del bosque</span></div>
+      <div id="vagabondSheet"></div>
+      <div class="section-head"><h3>Objetos</h3><span>tu estado físico en Root</span></div>
       <div class="inventory" id="inventoryGrid"></div>
-
-      <div class="section-head"><h3>Habilidades</h3><span>progresión por hitos</span></div>
-      <div class="skill-map" id="skillTree"></div>
-
-      <div class="section-head"><h3>Hitos</h3><span>la historia desbloquea opciones</span></div>
-      <div class="card"><div class="milestone-list" id="milestoneList"></div></div>
-
+      <div class="section-head"><h3>Habilidades</h3><span id="skillStatus">hitos y caminos</span></div>
+      <div id="skillTree"></div>
       <div class="section-head"><h3>Reputación</h3><span>cómo te lee el bosque</span></div>
       <div class="stack" id="reputationList"></div>
+      <div class="section-head"><h3>Hitos</h3><span>la historia te transforma</span></div>
+      <div class="card parchment" id="milestoneList"></div>
     </section>
 
     <section class="view" id="view-mundo">
