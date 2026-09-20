@@ -1,14 +1,17 @@
-const CACHE='root-rpg-v05';
+const CACHE='root-rpg-v06';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css?v=5',
-  './app.js?v=5',
+  './styles.css?v=6',
+  './app.js?v=6',
   './manifest.webmanifest',
   './icon.svg',
   './icons.svg',
   './forest-silhouette.svg',
-  './woodland-pattern.svg'
+  './woodland-pattern.svg',
+  './art/thief.svg',
+  './art/ranger.svg',
+  './art/tinker.svg'
 ];
 
 self.addEventListener('install',event=>{
