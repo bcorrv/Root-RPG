@@ -300,6 +300,7 @@
 
   function renderToday(){
     const b=$('#todayTimeline'),arr=S.actions.filter(a=>a.day===S.day);$('#todayCount').textContent=`${arr.length} ${arr.length===1?'acción':'acciones'}`;b.innerHTML='';
+    const endBtn=$('#endDayBtn');if(endBtn)endBtn.style.display=S.phase==='world'?'none':'block';
     if(!arr.length){b.innerHTML='<div class="empty">El día está abierto. Elige cualquier acción.</div>';return}
     arr.forEach(a=>{const r=document.createElement('div');r.className='timeline-item';r.innerHTML=`<div class="timeline-icon">${ico(a.icon||'spark')}</div><div><div class="timeline-title">${esc(a.label)}</div><div class="timeline-meta">${esc(a.meta||'')}${a.clear?' · Claro '+esc(a.clear):''}</div></div><span class="tag">${a.cost}t</span>`;b.appendChild(r)});
   }
@@ -475,6 +476,7 @@
   $$('.nav-btn').forEach(b=>b.onclick=()=>switchView(b.dataset.view));
 
   $('#addStateBtn').onclick=openAddState;
+  $('#endDayBtn').onclick=()=>{if(S.phase==='world')return;S.phase='world';ensureWorld();addLog('La jornada termina antes de agotar todo el tiempo.','rest');save();renderAll();toast('Fase del Mundo disponible')};
   $('#damageBtn').onclick=()=>{S.character.hp=clamp(S.character.hp-1,0,S.character.maxHp);addLog('Pierde 1 de vida','heart');save();renderHeader()};
   $('#healBtn').onclick=()=>{S.character.hp=clamp(S.character.hp+1,0,S.character.maxHp);addLog('Recupera 1 de vida','heart');save();renderHeader()};
   $('#gainXpBtn').onclick=()=>{S.character.xp++;addLog('+1 XP por progreso significativo','star');save();renderHeader()};
