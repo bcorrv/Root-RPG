@@ -328,27 +328,82 @@
     Object.entries(S.reputations).forEach(([n,v])=>{const f=FACTIONS[n],left=v<0?50+(v/3)*50:50,w=Math.abs(v)/3*50,color=v<0?'var(--red)':'var(--moss)';const c=document.createElement('div');c.className='rep-card';c.innerHTML=`<div class="rep-top"><div class="rep-title"><div class="faction-seal ${f.className}">${ico(f.icon)}</div><div><div class="rep-name">${n}</div><div class="rep-state">${repLabel(v)}</div></div></div><strong>${v>0?'+':''}${v}</strong></div><div class="rep-track"><div class="rep-fill" style="left:${left}%;width:${w}%;background:${color}"></div></div>`;const a=document.createElement('div');a.className='rep-actions';['−1','+1'].forEach((t,i)=>{const bt=document.createElement('button');bt.className='chip';bt.textContent=t;bt.onclick=()=>{const old=S.reputations[n];S.reputations[n]=clamp(old+(i?1:-1),-3,3);addLog(`${n}: ${old} → ${S.reputations[n]}`,f.icon);save();renderReputation()};a.appendChild(bt)});c.appendChild(a);b.appendChild(c)});
   }
 
+  function orderFace(origin,suit){
+    const f=FACTIONS[origin],s=SUITS[suit];
+    if(!f||!s)return '';
+    return `<div class="order-face">
+      <svg class="ico order-face-art"><use href="./icons.svg#scene-${suit}"></use></svg>
+      <div class="order-suit-medallion">${ico(s.icon)}</div>
+      <span class="order-face-label">${esc(s.name)}</span>
+    </div>`;
+  }
+
   function openBot(name){
-    ensureWorld();const f=FACTIONS[name],old=S.world.records[name]||{suit:null,outcomes:[]},d={suit:old.suit,outcomes:[...old.outcomes]};
-    openSheet(name,'Toca el palo de la Carta de Orden y lo que ocurrió físicamente.','');
+    ensureWorld();
+    const f=FACTIONS[name],old=S.world.records[name]||{suit:null,outcomes:[]};
+    const d={suit:old.suit,outcomes:[...old.outcomes]};
+    openSheet(name,'Registra la Carta de Orden y solo los cambios que realmente ocurrieron en mesa.','');
     function draw(){
       sheet.content.innerHTML=`
-      <div class="sheet-section"><div class="sheet-label">Carta de Orden</div><div class="suit-row">${Object.entries(SUITS).map(([id,s])=>`<button class="suit-btn ${d.suit===id?'selected':''}" data-suit="${id}">${ico(s.icon)}</button>`).join('')}</div></div>
-      <div class="sheet-section"><div class="sheet-label">Cambios reales en mesa</div><div class="choice-grid">${f.outcomes.map((o,i)=>`<button class="choice-btn ${d.outcomes.includes(o)?'selected':''}" data-outcome="${i}"><span>${o}</span></button>`).join('')}</div></div>
-      <button class="btn" id="saveOrder" style="width:100%;margin-top:14px" ${d.suit?'':'disabled'}>Guardar orden</button>
-      <button class="btn secondary" data-close-sheet style="width:100%;margin-top:8px">Cerrar</button>`;
+        ${d.suit?`<div class="order-preview"><div class="order-ribbon" style="background:${f.color}"></div>${orderFace(name,d.suit)}<div class="order-preview-copy"><strong>${name} · ${SUITS[d.suit].name}</strong><span>${d.outcomes.length?d.outcomes.map(esc).join(' · '):'Selecciona abajo qué ocurrió físicamente.'}</span></div></div>`:''}
+        <div class="sheet-section"><div class="sheet-label">Carta de Orden</div><div class="suit-row">
+          ${Object.entries(SUITS).map(([id,s])=>`<button class="suit-btn ${d.suit===id?'selected':''}" data-suit="${id}" aria-label="${s.name}">${ico(s.icon)}</button>`).join('')}
+        </div></div>
+        <div class="sheet-section"><div class="sheet-label">Cambios reales en mesa</div><div class="choice-grid">
+          ${f.outcomes.map((o,i)=>`<button class="choice-btn ${d.outcomes.includes(o)?'selected':''}" data-outcome="${i}"><span>${o}</span></button>`).join('')}
+        </div></div>
+        <button class="btn" id="saveOrder" style="width:100%;margin-top:14px" ${d.suit?'':'disabled'}>Sellar orden del día</button>
+        <button class="btn secondary" data-close-sheet style="width:100%;margin-top:8px">Cerrar</button>`;
       sheet.content.querySelectorAll('[data-suit]').forEach(x=>x.onclick=()=>{d.suit=x.dataset.suit;draw()});
-      sheet.content.querySelectorAll('[data-outcome]').forEach(x=>x.onclick=()=>{const o=f.outcomes[Number(x.dataset.outcome)];d.outcomes=d.outcomes.includes(o)?d.outcomes.filter(y=>y!==o):[...d.outcomes,o];draw()});
+      sheet.content.querySelectorAll('[data-outcome]').forEach(x=>x.onclick=()=>{
+        const o=f.outcomes[Number(x.dataset.outcome)];
+        d.outcomes=d.outcomes.includes(o)?d.outcomes.filter(y=>y!==o):[...d.outcomes,o];
+        draw();
+      });
       sheet.content.querySelector('[data-close-sheet]').onclick=closeSheet;
-      const s=$('#saveOrder');if(s)s.onclick=()=>{S.world.records[name]={suit:d.suit,outcomes:d.outcomes};S.world.resolved[name]=true;addLog(`Orden de ${name}: ${SUITS[d.suit].name}${d.outcomes.length?' · '+d.outcomes.join(', '):''}`,f.icon);save();closeSheet();renderAll();if(activeBots().every(n=>S.world.resolved[n]))setTimeout(openHarvest,150)};
+      const s=$('#saveOrder');
+      if(s)s.onclick=()=>{
+        S.world.records[name]={suit:d.suit,outcomes:d.outcomes};
+        S.world.resolved[name]=true;
+        addLog(`Orden de ${name}: ${SUITS[d.suit].name}${d.outcomes.length?' · '+d.outcomes.join(', '):''}`,f.icon);
+        save();closeSheet();renderAll();
+        if(activeBots().every(n=>S.world.resolved[n]))setTimeout(openHarvest,150);
+      };
     }
     draw();
   }
 
   function renderBots(){
-    ensureWorld();const b=$('#botList');b.innerHTML='';
-    activeBots().forEach(n=>{const f=FACTIONS[n],r=S.world.records[n],done=!!S.world.resolved[n];const c=document.createElement('div');c.className='bot-card';c.innerHTML=`<div class="bot-head"><div class="bot-left"><div class="faction-seal ${f.className}">${ico(f.icon)}</div><div><div class="bot-name">${n}</div><div class="bot-status">${S.phase==='world'?(done?'Orden registrada':'Pendiente'):'Esperando Fase del Mundo'}</div></div></div><span class="tag">${r?.suit?SUITS[r.suit].name:'—'}</span></div>${r?.outcomes?.length?`<div class="item-meta" style="margin-top:8px">${r.outcomes.map(esc).join(' · ')}</div>`:''}<div class="bot-actions"><button class="btn ${done?'secondary':''}" data-bot="${n}" ${S.phase!=='world'?'disabled':''}>${done?'Editar orden':'Resolver orden'}</button></div>`;c.querySelector('[data-bot]').onclick=()=>openBot(n);b.appendChild(c)});
-    if(S.phase==='world'){const ok=activeBots().every(n=>S.world.resolved[n]);const c=document.createElement('div');c.className='bot-card';c.innerHTML=`<div class="bot-head"><div><div class="bot-name">Procesar consecuencias</div><div class="bot-status">${ok?'Convierte las órdenes en historia':'Primero resuelve todas las órdenes activas'}</div></div></div><div class="bot-actions"><button class="btn gold" id="harvestBtn" ${ok?'':'disabled'}>Rumor · misión · fondo</button></div>`;b.appendChild(c);const h=$('#harvestBtn');if(h)h.onclick=openHarvest}
+    ensureWorld();
+    const b=$('#botList');b.innerHTML='';
+    activeBots().forEach(n=>{
+      const f=FACTIONS[n],r=S.world.records[n],done=!!S.world.resolved[n];
+      const card=document.createElement('div');
+      card.className=`order-card ${f.className}`;
+      card.innerHTML=`
+        <div class="order-ribbon"></div>
+        <div class="order-card-body">
+          <div class="order-card-head">
+            <div class="order-faction">
+              <div class="faction-seal ${f.className}">${ico(f.icon)}</div>
+              <div><div class="order-card-title">${n}</div><div class="order-card-status">${S.phase==='world'?(done?'Orden sellada':'Carta pendiente'):'Esperando Fase del Mundo'}</div></div>
+            </div>
+            <span class="tag">${r?.suit?SUITS[r.suit].name:'Sin carta'}</span>
+          </div>
+          ${r?.suit?orderFace(n,r.suit):`<div class="order-face"><svg class="ico order-face-art"><use href="./icons.svg#scene-bird"></use></svg><div class="order-suit-medallion">${ico('card')}</div><span class="order-face-label">Pendiente</span></div>`}
+          ${r?.outcomes?.length?`<div class="order-outcomes">${r.outcomes.map(o=>`<span class="order-outcome">${esc(o)}</span>`).join('')}</div>`:''}
+          <div class="order-card-actions"><button class="btn ${done?'secondary':''}" data-bot="${n}" ${S.phase!=='world'?'disabled':''}>${done?'Reabrir orden':'Revelar y resolver'}</button></div>
+        </div>`;
+      card.querySelector('[data-bot]').onclick=()=>openBot(n);
+      b.appendChild(card);
+    });
+    if(S.phase==='world'){
+      const ok=activeBots().every(n=>S.world.resolved[n]);
+      const c=document.createElement('div');c.className='bot-card';
+      c.innerHTML=`<div class="bot-head"><div><div class="bot-name">Consecuencias del día</div><div class="bot-status">${ok?'Las órdenes ya pueden convertirse en historia':'Faltan Cartas de Orden por resolver'}</div></div></div><div class="bot-actions"><button class="btn gold" id="harvestBtn" ${ok?'':'disabled'}>Procesar órdenes</button></div>`;
+      b.appendChild(c);
+      const h=$('#harvestBtn');if(h)h.onclick=openHarvest;
+    }
   }
 
   function rewardFor(outcome,origin){
@@ -434,7 +489,15 @@
   function renderOrderHistory(){
     const b=$('#orderHistoryList');b.innerHTML='';
     if(!S.orderHistory.length){b.innerHTML='<div class="empty">Aquí quedarán archivadas las Cartas de Orden de cada día.</div>';return}
-    S.orderHistory.slice(0,8).forEach(o=>{const f=FACTIONS[o.origin];const r=document.createElement('div');r.className='timeline-item';r.innerHTML=`<div class="timeline-icon">${ico(f.icon)}</div><div><div class="timeline-title">${esc(o.origin)} · ${SUITS[o.suit]?.name||''}</div><div class="timeline-meta">${o.outcomes.map(esc).join(' · ')||'Sin evento destacado'} · Día ${o.day}</div></div><span class="tag">D${o.day}</span>`;b.appendChild(r)});
+    S.orderHistory.slice(0,10).forEach(o=>{
+      const f=FACTIONS[o.origin],s=SUITS[o.suit];
+      const r=document.createElement('div');r.className='order-history-card';
+      r.innerHTML=`
+        <div class="order-history-suit" style="--order-color:${f.color}">${ico(s?.icon||'card')}</div>
+        <div><div class="order-history-title">${esc(o.origin)} · ${s?.name||''}</div><div class="order-history-meta">${o.outcomes.map(esc).join(' · ')||'Sin evento destacado'} · Día ${o.day}</div></div>
+        <span class="tag">D${o.day}</span>`;
+      b.appendChild(r);
+    });
   }
 
   function openAddState(){
@@ -448,7 +511,25 @@
   function renderRumors(){
     const b=$('#rumorsList');$('#rumorCounter').textContent=`${S.rumors.length} / 3`;b.innerHTML='';
     if(!S.rumors.length){b.innerHTML='<div class="empty">Las órdenes todavía no han dejado rumores activos.</div>';return}
-    S.rumors.forEach((r,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<div class="item-head"><div><span class="tag">${SUITS[r.suit]?.name||''} · ${esc(r.origin)} · Día ${r.day}</span><div class="item-title" style="margin-top:8px">${esc(r.text)}</div></div></div><div class="btn-row" style="margin-top:10px"><button class="btn" data-follow="${i}">Seguir pista</button><button class="btn secondary" data-resolve="${i}">Resolver</button></div>`;d.querySelector('[data-follow]').onclick=()=>{const rr=S.rumors[i],m=rr.seed||missionDraft(rr.origin,rr.suit,['Movió']);if(recordAction({label:'Seguir rumor',icon:'search',cost:1,meta:rr.text,effect:()=>{S.missions.push({...m,id:uid(),status:'active'});S.rumors.splice(i,1)}})){switchView('descubrir')}};d.querySelector('[data-resolve]').onclick=()=>{const old=S.rumors.splice(i,1)[0];addLog(`Rumor resuelto: ${old.text}`,'card');save();renderRumors()};b.appendChild(d)});
+    S.rumors.forEach((r,i)=>{
+      const f=FACTIONS[r.origin]||FACTIONS.Marquesado;
+      const d=document.createElement('div');d.className='rumor-card';d.style.setProperty('--rumor-color',f.color);
+      d.innerHTML=`
+        <div class="rumor-head">
+          <div class="rumor-source"><div class="faction-seal ${f.className}">${ico(f.icon)}</div><div><div class="item-title">${esc(r.origin)}</div><div class="item-meta">${SUITS[r.suit]?.name||''} · Día ${r.day}</div></div></div>
+          <span class="tag">Rumor</span>
+        </div>
+        <div class="rumor-copy">“${esc(r.text)}”</div>
+        <div class="btn-row" style="margin-top:11px"><button class="btn" data-follow="${i}">Seguir pista</button><button class="btn secondary" data-resolve="${i}">Dejar morir</button></div>`;
+      d.querySelector('[data-follow]').onclick=()=>{
+        const rr=S.rumors[i],m=rr.seed||missionDraft(rr.origin,rr.suit,['Movió']);
+        if(recordAction({label:'Seguir rumor',icon:'search',cost:1,meta:rr.text,effect:()=>{S.missions.push({...m,id:uid(),status:'active'});S.rumors.splice(i,1)}}))switchView('descubrir');
+      };
+      d.querySelector('[data-resolve]').onclick=()=>{
+        const old=S.rumors.splice(i,1)[0];addLog(`Rumor se apaga: ${old.text}`,'card');save();renderRumors();
+      };
+      b.appendChild(d);
+    });
   }
 
   function applyReward(m){
@@ -456,9 +537,37 @@
     addLog(`Misión cumplida: ${m.title} · obtienes ${ITEM_DEF[m.reward].name} + 1 XP`,'star');
   }
   function renderMissions(){
-    const b=$('#missionsList'),active=S.missions.filter(m=>m.status==='active');$('#missionCounter').textContent=`${active.length} activas`;b.innerHTML='';
+    const b=$('#missionsList'),active=S.missions.filter(m=>m.status==='active');
+    $('#missionCounter').textContent=`${active.length} activas`;b.innerHTML='';
     if(!active.length){b.innerHTML='<div class="empty">Las Cartas de Orden pueden convertirse en misiones con recompensas físicas.</div>';return}
-    active.forEach(m=>{const idx=S.missions.indexOf(m),f=FACTIONS[m.origin];const d=document.createElement('div');d.className='mission';d.innerHTML=`<div class="mission-top"><div><div class="mission-kicker">${esc(m.origin)} · ${SUITS[m.suit]?.name||''}</div><div class="mission-title">${esc(m.title)}</div></div><div class="faction-seal ${f.className}">${ico(f.icon)}</div></div><div class="mission-objective">${esc(m.objective)}</div><div class="reward-row"><span class="reward-chip">${ico(ITEM_DEF[m.reward].icon)} ${ITEM_DEF[m.reward].name}</span><span class="reward-chip">${ico('star')} +1 XP</span></div><div class="btn-row" style="margin-top:11px"><button class="btn" data-success="${idx}">Cumplida</button><button class="btn secondary" data-fail="${idx}">Fallida</button><button class="btn secondary" data-drop="${idx}">Abandonar</button></div>`;d.querySelector('[data-success]').onclick=()=>{m.status='completed';applyReward(m);save();renderAll()};d.querySelector('[data-fail]').onclick=()=>{m.status='failed';addLog(`Misión fallida: ${m.title}`,'close');save();renderMissions()};d.querySelector('[data-drop]').onclick=()=>{m.status='abandoned';addLog(`Misión abandonada: ${m.title}`,'scroll');save();renderMissions()};b.appendChild(d)});
+    active.forEach(m=>{
+      const idx=S.missions.indexOf(m),f=FACTIONS[m.origin],reward=ITEM_DEF[m.reward];
+      const d=document.createElement('div');d.className='mission';d.style.setProperty('--mission-color',f.color);
+      d.innerHTML=`
+        <div class="mission-ribbon"></div>
+        <div class="mission-inner">
+          <div class="mission-head">
+            <div><div class="mission-kicker">${esc(m.origin)} · ${SUITS[m.suit]?.name||''}</div><div class="mission-title">${esc(m.title)}</div></div>
+            <div class="faction-seal ${f.className}">${ico(f.icon)}</div>
+          </div>
+          <div class="mission-objective">${esc(m.objective)}</div>
+          <div class="mission-separator"></div>
+          <div class="reward-panel">
+            <div class="reward-token">${ico(reward.icon)}</div>
+            <div class="reward-copy" style="flex:1"><small>Recompensa</small><strong>${reward.name} + 1 XP</strong><div class="item-meta">${reward.info}</div></div>
+            <span class="tag">Día ${m.day}</span>
+          </div>
+          <div class="mission-actions">
+            <button class="btn" data-success="${idx}">Cumplida</button>
+            <button class="btn secondary" data-fail="${idx}">Fallida</button>
+            <button class="btn secondary" data-drop="${idx}">Abandonar</button>
+          </div>
+        </div>`;
+      d.querySelector('[data-success]').onclick=()=>{m.status='completed';applyReward(m);save();renderAll()};
+      d.querySelector('[data-fail]').onclick=()=>{m.status='failed';addLog(`Misión fallida: ${m.title}`,'close');save();renderMissions()};
+      d.querySelector('[data-drop]').onclick=()=>{m.status='abandoned';addLog(`Misión abandonada: ${m.title}`,'scroll');save();renderMissions()};
+      b.appendChild(d);
+    });
   }
 
   function renderLandmarks(){
