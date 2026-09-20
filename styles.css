@@ -614,3 +614,5 @@ button{cursor:pointer}
 @media(max-width:700px){
   .skill-map{grid-template-columns:1fr}
 }
+
+.skill-state .ico{width:14px;height:14px}
