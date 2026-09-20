@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#334b35">
+<meta name="theme-color" content="#26392b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Root RPG">
-<title>Root RPG — Sandbox Companion</title>
+<title>Root RPG — Woodland Companion</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./styles.css?v=3">
+<link rel="stylesheet" href="./styles.css?v=4">
 </head>
 <body>
 <div class="shell">
   <header class="topbar">
     <div class="brand">
-      <div class="brandmark">🦝</div>
+      <div class="brandmark"><svg class="ico"><use href="./icons.svg#paw"></use></svg></div>
       <div>
         <h1>Root RPG</h1>
-        <p>Sandbox Companion · v0.3</p>
+        <p>Woodland Companion · v0.4</p>
       </div>
     </div>
-    <button class="save-chip" id="settingsBtn">⚙️ Ajustes</button>
+    <button class="save-chip" id="settingsBtn"><svg class="ico mini"><use href="./icons.svg#gear"></use></svg><span>Ajustes</span></button>
   </header>
 
   <section class="hero">
@@ -32,14 +32,14 @@
         <h2 id="heroName">Crónicas del Bosque</h2>
         <div class="hero-sub" id="heroSubtitle">Día 1 · Pícaro</div>
       </div>
-      <span class="chip" id="saveChip">● Autoguardado</span>
+      <span class="save-state" id="saveChip">Autoguardado</span>
     </div>
 
     <div class="hero-stats">
-      <div class="hero-stat"><small>❤️ Vida</small><strong id="heroHp">3/3</strong></div>
-      <div class="hero-stat"><small>⭐ XP</small><strong id="heroXp">0/5</strong></div>
-      <div class="hero-stat"><small>📍 Claro</small><strong id="heroClear">—</strong></div>
-      <div class="hero-stat"><small>🏅 Nivel</small><strong id="heroLevel">1</strong></div>
+      <div class="hero-stat"><svg class="ico stat-ico"><use href="./icons.svg#heart"></use></svg><small>Vida</small><strong id="heroHp">3/3</strong></div>
+      <div class="hero-stat"><svg class="ico stat-ico"><use href="./icons.svg#star"></use></svg><small>XP</small><strong id="heroXp">0/5</strong></div>
+      <div class="hero-stat"><svg class="ico stat-ico"><use href="./icons.svg#pin"></use></svg><small>Claro</small><strong id="heroClear">—</strong></div>
+      <div class="hero-stat"><svg class="ico stat-ico"><use href="./icons.svg#medal"></use></svg><small>Nivel</small><strong id="heroLevel">1</strong></div>
     </div>
 
     <div class="daybar">
@@ -52,66 +52,72 @@
 
   <main>
     <section class="view active" id="view-turno">
-      <div class="section-head"><h3>¿Qué haces?</h3><span>Toca una acción</span></div>
+      <div class="section-head"><h3>Tu jornada</h3><span>elige, toca, resuelve</span></div>
       <div class="action-grid" id="actionGrid"></div>
 
       <div id="worldBanner"></div>
 
-      <div class="section-head"><h3>Hoy</h3><span id="todayCount">0 acciones</span></div>
-      <div class="card">
+      <div class="section-head"><h3>Huella del día</h3><span id="todayCount">0 acciones</span></div>
+      <div class="card parchment">
         <div class="timeline" id="todayTimeline"></div>
       </div>
     </section>
 
     <section class="view" id="view-personaje">
-      <div class="section-head"><h3>Personaje</h3><span>progreso y equipo</span></div>
+      <div class="section-head"><h3>Vagabundo</h3><span>progreso y equipo</span></div>
 
       <div class="character-banner">
         <div class="character-main">
-          <div class="avatar">🦝</div>
+          <div class="avatar"><svg class="ico avatar-ico"><use href="./icons.svg#paw"></use></svg></div>
           <div>
             <div class="character-name" id="characterName">Pícaro</div>
-            <div class="character-class">Vagabundo · Especialista en sigilo y engaño</div>
+            <div class="character-class">Sigilo · engaño · oportunidad</div>
           </div>
         </div>
-        <div class="character-right">
-          <div style="opacity:.7;font-size:.72rem">NIVEL</div>
-          <strong id="characterLevel">1</strong>
-        </div>
+        <div class="character-right"><span>NIVEL</span><strong id="characterLevel">1</strong></div>
       </div>
 
       <div class="section-head"><h3>Progreso</h3><span>5 XP = mejora</span></div>
       <div class="card">
         <div class="stat-row">
-          <div class="stat"><small>❤️ Vida</small><strong id="charHp">3/3</strong></div>
-          <div class="stat"><small>⭐ XP</small><strong id="charXp">0/5</strong></div>
-          <div class="stat"><small>📍 Posición</small><strong id="charClear">—</strong></div>
+          <div class="stat"><svg class="ico stat-ico dark"><use href="./icons.svg#heart"></use></svg><small>Vida</small><strong id="charHp">3/3</strong></div>
+          <div class="stat"><svg class="ico stat-ico dark"><use href="./icons.svg#star"></use></svg><small>XP</small><strong id="charXp">0/5</strong></div>
+          <div class="stat"><svg class="ico stat-ico dark"><use href="./icons.svg#pin"></use></svg><small>Posición</small><strong id="charClear">—</strong></div>
         </div>
         <div class="btn-row" style="margin-top:12px">
-          <button class="btn secondary grow" id="damageBtn">−1 ❤️</button>
-          <button class="btn secondary grow" id="healBtn">+1 ❤️</button>
+          <button class="btn secondary grow" id="damageBtn">Perder vida</button>
+          <button class="btn secondary grow" id="healBtn">Recuperar</button>
           <button class="btn grow" id="gainXpBtn">+1 XP</button>
         </div>
-        <button class="btn gold" id="levelUpBtn" style="width:100%;margin-top:8px">Usar 5 XP → mejorar</button>
+        <button class="btn gold" id="levelUpBtn" style="width:100%;margin-top:8px">Usar 5 XP · mejorar</button>
       </div>
 
-      <div class="section-head"><h3>Habilidades</h3><span>0 a +2</span></div>
+      <div class="section-head"><h3>Talentos</h3><span>tu forma de jugar</span></div>
       <div class="card" id="skillsCard"></div>
 
-      <div class="section-head"><h3>Equipo</h3><span>objetos físicos Root</span></div>
+      <div class="section-head"><h3>Equipo</h3><span>objetos físicos</span></div>
       <div class="inventory" id="inventoryGrid"></div>
 
-      <div class="section-head"><h3>Reputación</h3><span>tu relación con el mundo</span></div>
+      <div class="section-head"><h3>Reputación</h3><span>cómo te lee el bosque</span></div>
       <div class="stack" id="reputationList"></div>
     </section>
 
     <section class="view" id="view-mundo">
-      <div class="section-head"><h3>Potencias del bosque</h3><span>autómatas activos</span></div>
-      <div class="stack" id="botList"></div>
+      <div class="section-head"><h3>Mesa de Órdenes</h3><span>la guerra mueve el mundo</span></div>
+      <div class="order-desk">
+        <div class="order-intro">
+          <svg class="ico order-intro-icon"><use href="./icons.svg#card"></use></svg>
+          <div>
+            <strong>Las Cartas de Orden son el pulso de la campaña.</strong>
+            <span>Registra palo + lo que realmente ocurrió. De ahí nacen rumores, misiones y oportunidades.</span>
+          </div>
+        </div>
+        <div class="stack" id="botList"></div>
+      </div>
 
       <div class="section-head"><h3>Estados del mapa</h3><span>1 principal por claro</span></div>
       <div class="card">
-        <button class="btn" id="addStateBtn" style="width:100%">＋ Añadir estado a un claro</button>
+        <button class="btn" id="addStateBtn" style="width:100%">Añadir estado a un claro</button>
         <div class="stack" id="statesList" style="margin-top:10px"></div>
       </div>
     </section>
@@ -120,28 +126,31 @@
       <div class="section-head"><h3>Rumores</h3><span id="rumorCounter">0 / 3</span></div>
       <div class="stack" id="rumorsList"></div>
 
-      <div class="section-head"><h3>Lugares Míticos</h3><span>el mapa crece al descubrirlos</span></div>
+      <div class="section-head"><h3>Misiones y oportunidades</h3><span id="missionCounter">0 activas</span></div>
+      <div class="stack" id="missionsList"></div>
+
+      <div class="section-head"><h3>Lugares Míticos</h3><span>el bosque se abre</span></div>
       <div class="stack" id="landmarksList"></div>
     </section>
 
     <section class="view" id="view-historial">
-      <div class="section-head"><h3>Bitácora</h3><span>memoria automática</span></div>
-      <div class="card">
+      <div class="section-head"><h3>Crónica</h3><span>historia automática</span></div>
+      <div class="card parchment">
         <div class="timeline" id="historyList"></div>
       </div>
 
       <div class="section-head"><h3>Campaña</h3><span>respaldo y control</span></div>
       <div class="card">
         <div class="setting-row">
-          <div><div class="item-title">Exportar respaldo</div><div class="meta">Guarda toda la campaña en un JSON.</div></div>
+          <div><div class="item-title">Exportar respaldo</div><div class="meta">Guarda toda la campaña en un archivo.</div></div>
           <button class="btn secondary" id="exportBtn">Exportar</button>
         </div>
         <div class="setting-row">
-          <div><div class="item-title">Importar respaldo</div><div class="meta">Restaura una campaña exportada.</div></div>
+          <div><div class="item-title">Importar respaldo</div><div class="meta">Restaura una campaña anterior.</div></div>
           <label class="btn secondary">Importar<input id="importInput" type="file" accept=".json,application/json" style="display:none"></label>
         </div>
         <div class="setting-row">
-          <div><div class="item-title">Nueva campaña</div><div class="meta">Reinicia todos los datos de esta campaña.</div></div>
+          <div><div class="item-title">Nueva campaña</div><div class="meta">Borra el estado local actual.</div></div>
           <button class="btn red" id="resetBtn">Reiniciar</button>
         </div>
       </div>
@@ -151,11 +160,11 @@
 
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="nav-btn active" data-view="turno"><span class="nav-icon">⏳</span><span>Turno</span></button>
-    <button class="nav-btn" data-view="personaje"><span class="nav-icon">🦝</span><span>Personaje</span></button>
-    <button class="nav-btn" data-view="mundo"><span class="nav-icon">🌍</span><span>Mundo</span></button>
-    <button class="nav-btn" data-view="descubrir"><span class="nav-icon">🧭</span><span>Descubrir</span></button>
-    <button class="nav-btn" data-view="historial"><span class="nav-icon">📜</span><span>Historial</span></button>
+    <button class="nav-btn active" data-view="turno"><svg class="ico nav-ico"><use href="./icons.svg#move"></use></svg><span>Jornada</span></button>
+    <button class="nav-btn" data-view="personaje"><svg class="ico nav-ico"><use href="./icons.svg#paw"></use></svg><span>Vagabundo</span></button>
+    <button class="nav-btn" data-view="mundo"><svg class="ico nav-ico"><use href="./icons.svg#world"></use></svg><span>Órdenes</span></button>
+    <button class="nav-btn" data-view="descubrir"><svg class="ico nav-ico"><use href="./icons.svg#compass"></use></svg><span>Descubrir</span></button>
+    <button class="nav-btn" data-view="historial"><svg class="ico nav-ico"><use href="./icons.svg#scroll"></use></svg><span>Crónica</span></button>
   </div>
 </nav>
 
@@ -170,16 +179,17 @@
 
 <div class="onboarding" id="onboarding">
   <div class="onboard-card">
-    <div class="onboard-mark">🦝</div>
+    <div class="onboard-mark"><svg class="ico onboard-ico"><use href="./icons.svg#paw"></use></svg></div>
+    <div class="eyebrow dark-eyebrow">Primer paso</div>
     <h2>Entra al bosque</h2>
-    <p>Tu tablero físico es el mundo. Esta app solo recuerda lo que el tablero no puede: tiempo, progreso, reputación, rumores y consecuencias.</p>
-    <label for="playerName" style="margin-top:16px">Tu nombre</label>
+    <p>Tu tablero físico es el mundo. Esta app recuerda tiempo, reputación, rumores, misiones y consecuencias.</p>
+    <label for="playerName" class="input-label">Tu nombre</label>
     <input id="playerName" class="name-input" autocomplete="name" placeholder="Basti">
     <button class="btn" id="startCampaignBtn" style="width:100%;margin-top:10px">Comenzar campaña</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="./app.js?v=3"></script>
+<script src="./app.js?v=4"></script>
 </body>
 </html>
