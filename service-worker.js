@@ -1,11 +1,12 @@
-const CACHE='root-rpg-v03';
+const CACHE='root-rpg-v04';
 const ASSETS=[
   './',
   './index.html',
-  './styles.css',
-  './app.js',
+  './styles.css?v=4',
+  './app.js?v=4',
   './manifest.webmanifest',
   './icon.svg',
+  './icons.svg',
   './forest-silhouette.svg',
   './woodland-pattern.svg'
 ];
@@ -17,7 +18,8 @@ self.addEventListener('install',event=>{
 
 self.addEventListener('activate',event=>{
   event.waitUntil(
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
       .then(()=>self.clients.claim())
   );
 });
