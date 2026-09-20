@@ -7,46 +7,50 @@ Companion web/PWA para una campaña sandbox física de **Root**.
 - **App = memoria y sistema**
 - **GPT / GM = interpretación, NPC, consecuencias y lectura del mundo**
 
-## v0.5 — Woodland Companion
+## v0.6 — Character System V1
 
-La interfaz dejó de depender de emojis y formularios. En v0.5, las Órdenes, Rumores y Misiones se representan como cartas físicas digitales con ilustraciones originales del bosque. La app usa un sistema visual propio, inspirado en bosque, cartón, tinta y fichas de juego, sin copiar arte oficial.
+La progresión del Vagabundo ya no usa HP, XP ni niveles genéricos. El personaje crece mediante:
 
-### Loop central
-**Carta de Orden → cambio real en mesa → consecuencia → rumor / misión / fondo → recompensa**
+**habilidades → objetos → relaciones → reputación → hitos → historia**
 
-Las Cartas de Orden quedan guardadas en un **Archivo de Órdenes** por día. Cada orden puede:
-- quedar como cambio de fondo;
-- transformarse en rumor;
-- transformarse directamente en misión;
-- o, si primero es rumor, convertirse después en misión al seguir la pista.
+### Vagabundos disponibles
+Por ahora solo los tres del juego base:
+- **Thief**
+- **Ranger**
+- **Tinker**
 
-### Recompensas
-Las misiones generadas por las órdenes pueden entregar objetos físicos del Vagabundo:
-- Espada
-- Bota
-- Antorcha
-- Martillo
-- Ballesta
-- Té
-- Moneda
-- Bolsa
+La arquitectura está separada en `characters.js` para añadir posteriormente Vagabond Pack u otros personajes sin reescribir la interfaz.
 
-Además, completar una misión entrega XP.
+### Crear Vagabundo
+Flujo de tres pasos:
+1. nombre del personaje — único campo de texto obligatorio;
+2. elegir una carta visual grande: Thief, Ranger o Tinker;
+3. confirmar y comenzar.
 
-### Interfaz button-first
-Salvo el nombre del jugador, el juego se maneja con botones:
-- acciones;
-- claros 1–12;
-- dados 0–3;
-- modificadores;
-- facciones;
-- palos de Carta de Orden;
-- resultados del turno bot;
-- rumores;
-- misiones;
-- estados de claros;
-- landmarks;
-- progreso y reputación.
+Cada carta usa un retrato personalizado creado para el proyecto y muestra identidad, habilidad única y objetos iniciales.
 
-## Fuente de verdad
-Las piezas, edificios, tokens, combates y control territorial siguen estando en el tablero físico. La web no inventa ni reemplaza esa realidad: la registra y la convierte en campaña persistente.
+### Objetos Root
+El inventario usa exclusivamente los objetos de Root: Boot, Sword, Crossbow, Torch, Hammer, Tea, Coin y Bag.
+
+Cada objeto puede reflejar su estado físico: **listo / agotado / dañado**.
+
+### Habilidades
+Cada personaje tiene tres ramas con tres tiers. Se desbloquean mediante **hitos**, no XP.
+
+Los hitos pueden surgir de completar misiones, descubrir o vincular Lugares Míticos, reputación alta, variedad de objetos, acciones propias del arquetipo o eventos importantes.
+
+Las habilidades abren nuevas opciones dentro de misiones y eventos.
+
+### Misiones multietapa
+El loop central ahora es:
+
+**Carta de Orden → Rumor/Misión → Investigar pista → localizar claro → llegar físicamente → resolver escena → obtener objeto**
+
+Las habilidades desbloqueadas pueden abrir rutas exclusivas para resolver una misma escena.
+
+### Cartas de Orden
+Las Cartas de Orden siguen siendo el motor causal del sandbox:
+
+**Carta de Orden → cambio real en mesa → consecuencia → rumor / misión / fondo**
+
+La app nunca sustituye la resolución oficial de los bots ni el estado físico del tablero.
