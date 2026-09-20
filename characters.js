@@ -114,12 +114,11 @@ window.ROOT_RPG_CHARACTER_DATA = {
   },
 
   milestoneRules: {
-    firstMission: {id:"first_mission",label:"Primera misión completada",grantsSkillChoice:true},
-    thirdMission: {id:"third_mission",label:"Tres misiones completadas",grantsSkillChoice:true},
+    orderMissionVeteran: {id:"order_mission_veteran",label:"Tres misiones del mundo completadas",grantsSkillChoice:true},
     firstLandmark: {id:"first_landmark",label:"Primer Lugar Mítico descubierto",grantsSkillChoice:true},
     bondedLandmark: {id:"bonded_landmark",label:"Primer Lugar Mítico vinculado",grantsSkillChoice:true},
     firstTrustedFaction: {id:"first_trusted_faction",label:"Primera facción en Confiable",grantsSkillChoice:true},
-    itemBreadth: {id:"item_breadth",label:"Cinco tipos de objetos distintos",grantsSkillChoice:true},
+    regionalQuest: {id:"regional_quest",label:"Tres encargos locales del mismo palo",grantsSkillChoice:true},
     signatureActions: {id:"signature_actions",label:"Tres acciones propias del arquetipo",grantsSkillChoice:true},
     majorWorldEvent: {id:"major_world_event",label:"Participó en un evento importante del bosque",grantsSkillChoice:true}
   }
