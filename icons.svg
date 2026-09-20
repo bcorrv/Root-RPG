@@ -127,5 +127,28 @@
   <symbol id="bread" viewBox="0 0 24 24">
     <path d="M5 19c-2-3-1-8 3-9-1-4 5-6 7-3 4-1 6 3 4 6 2 3 0 6-3 6H5Z"/><path d="m9 11 2 2m2-4 2 2"/>
   </symbol>
+
+  <symbol id="scene-mouse" viewBox="0 0 160 90">
+    <path d="M0 72c27-15 47-13 70-2 29 14 56 5 90-8v28H0V72Z" fill="currentColor" opacity=".12" stroke="none"/>
+    <path d="M20 69V43l14-9 14 9v26M27 69V53h14v16M59 69V49l12-8 12 8v20M65 53h12M101 68c0-14 8-24 21-30 0 19-6 29-21 30ZM118 68c0-11 7-18 18-22 0 15-5 21-18 22Z"/>
+    <path d="M8 70h144"/>
+  </symbol>
+  <symbol id="scene-rabbit" viewBox="0 0 160 90">
+    <path d="M0 68c21-8 38-7 56 0 25 9 57 7 104-9v31H0V68Z" fill="currentColor" opacity=".12" stroke="none"/>
+    <path d="M15 69c10-16 19-25 31-29M45 68c8-12 18-18 30-20M85 67c12-18 24-27 38-30M122 65c8-10 16-15 25-17"/>
+    <path d="M31 52c-6-5-5-12-2-13 4-1 6 6 7 11M39 52c4-7 7-12 10-10 3 2 1 8-3 12M34 55c-3 2-4 5-4 8M92 50c-5-6-3-12 0-13 4 0 5 7 5 12M99 51c4-7 8-10 10-8 2 3-1 8-5 11"/>
+    <path d="M8 70h144"/>
+  </symbol>
+  <symbol id="scene-fox" viewBox="0 0 160 90">
+    <path d="M0 72c30-24 56-22 80-6 20 13 47 10 80-5v29H0V72Z" fill="currentColor" opacity=".13" stroke="none"/>
+    <path d="M12 69 35 38l18 31M43 69 70 29l24 40M82 69l20-27 19 27M113 69l16-21 18 21"/>
+    <path d="M59 58c8-11 17-16 28-18-3 12-10 20-20 24M17 60c5-9 12-14 20-16"/>
+    <path d="M8 70h144"/>
+  </symbol>
+  <symbol id="scene-bird" viewBox="0 0 160 90">
+    <path d="M0 70c32-11 63-7 91 0 28 7 49 5 69-4v24H0V70Z" fill="currentColor" opacity=".12" stroke="none"/>
+    <path d="M18 70V34M18 42c-8-2-13-7-14-14 8 0 13 4 14 11M18 48c8-2 13-7 15-14-8 0-13 4-15 11M58 70V27M58 38c-10-2-17-8-18-17 10 1 16 6 18 14M58 45c9-2 15-7 18-16-9 0-15 5-18 13M111 70V31M111 40c-9-2-14-6-16-14 9 0 14 4 16 11M111 47c8-1 14-6 16-13-8 0-13 4-16 10"/>
+    <path d="M83 36c9-5 18-5 27 0-8 2-17 2-27 0ZM8 70h144"/>
+  </symbol>
 </defs>
 </svg>
