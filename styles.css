@@ -616,3 +616,53 @@ button{cursor:pointer}
 }
 
 .skill-state .ico{width:14px;height:14px}
+
+
+/* v0.8 — Vagabond physical quest board */
+.quest-board-note{
+  border:1px dashed #b99a67;border-radius:16px;padding:11px 12px;
+  background:rgba(255,248,232,.62);color:var(--muted);font-size:.76rem;line-height:1.4;margin-bottom:10px
+}
+.vagabond-quest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.vagabond-quest-card{
+  min-height:190px;border:1px solid #b7925e;border-radius:21px;padding:12px;
+  background:
+    linear-gradient(rgba(255,248,232,.93),rgba(255,248,232,.93)),
+    url('./woodland-pattern.svg');
+  background-size:auto,160px 160px;box-shadow:0 9px 22px rgba(62,42,16,.07);
+  display:flex;flex-direction:column;gap:10px
+}
+.vagabond-quest-card>strong{font-family:Georgia,serif;font-size:.95rem}
+.vagabond-quest-card>small{font-size:.7rem;color:var(--muted);line-height:1.35}
+.quest-empty-icon{
+  width:48px;height:48px;border-radius:15px;background:#eadcc2;color:var(--forest);
+  display:grid;place-items:center
+}
+.quest-empty-icon .ico{width:25px;height:25px}
+.quest-card-suit{
+  display:flex;align-items:center;gap:8px;font-family:Georgia,serif;font-size:1rem;font-weight:900;
+  color:var(--forest)
+}
+.quest-card-suit .ico{width:26px;height:26px}
+.quest-item-pair{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.quest-item-pair span{
+  min-height:54px;border:1px solid #c4a676;border-radius:14px;background:#fff8e8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:.67rem;font-weight:800;color:#675438;text-align:center
+}
+.quest-item-pair .ico{width:21px;height:21px;color:var(--forest)}
+.quest-card-status{font-size:.7rem;color:var(--muted);margin-top:auto}
+.regional-progress{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px
+}
+.regional-chip{
+  border:1px solid #c3a674;border-radius:15px;padding:8px;background:#fff8e8;
+  display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:center
+}
+.regional-chip .ico{width:20px;height:20px;color:var(--forest)}
+.regional-chip span{font-size:.69rem;font-weight:800}.regional-chip strong{font-size:.76rem;color:var(--gold2)}
+.ability-card .chip:not(.active){opacity:.62}
+@media(max-width:720px){
+  .vagabond-quest-grid{grid-template-columns:1fr}
+  .regional-progress{grid-template-columns:repeat(2,1fr)}
+}
